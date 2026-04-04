@@ -114,7 +114,7 @@
         <option value="none">بدون فريق</option>
       </select>
       <button class="btn btn-primary btn-sm" onclick="openCreateTeamModal()">➕ فريق جديد</button>
-      <button class="btn btn-success btn-sm" onclick="exportXML()">📥 تصدير XML</button>
+<button class="btn btn-success btn-sm" onclick="exportExcel()">📊 تصدير Excel</button>
     </div>
 
     <div class="table-wrapper">
@@ -272,7 +272,7 @@
     </div>
   </div>
 </div>
-
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 <!-- ══════════════════ SCRIPTS ══════════════════ -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -747,63 +747,34 @@ const auth = getAuth(app);
   // ════════════════════════════════════════
   //  EXPORT XML
   // ════════════════════════════════════════
-  window.exportXML = function() {
-    const date = new Date().toISOString().split('T')[0];
-    let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
-    xml += `<ecpc_registration exported="${date}">\n`;
-    xml += `  <summary>\n`;
-    xml += `    <total_users>${allUsers.length}</total_users>\n`;
-    xml += `    <total_teams>${allTeams.length}</total_teams>\n`;
-    xml += `    <users_with_team>${allUsers.filter(u=>u.team_id).length}</users_with_team>\n`;
-    xml += `    <users_without_team>${allUsers.filter(u=>!u.team_id).length}</users_without_team>\n`;
-    xml += `  </summary>\n`;
+  window.exportExcel = function() {
+  const data = [];
 
-    xml += `  <teams>\n`;
-    allTeams.forEach(t => {
-      const members = allUsers.filter(u => u.team_id === t.id);
-      xml += `    <team id="${escXml(t.id)}">\n`;
-      xml += `      <name>${escXml(t.name)}</name>\n`;
-      xml += `      <members_count>${t.members_count}</members_count>\n`;
-      xml += `      <members>\n`;
-      members.forEach(m => {
-        xml += `        <member>\n`;
-        xml += `          <full_name>${escXml(m.full_name||'')}</full_name>\n`;
-        xml += `          <icpc_email>${escXml(m.icpc_email||'')}</icpc_email>\n`;
-        xml += `          <student_id>${escXml(m.student_id||'')}</student_id>\n`;
-        xml += `          <phone>${escXml(m.phone||'')}</phone>\n`;
-        xml += `          <national_id>${escXml(m.national_id||'')}</national_id>\n`;
-        xml += `          <dob>${escXml(m.dob||'')}</dob>\n`;
-        xml += `          <enrollment_date>${escXml(m.enrollment_date||'')}</enrollment_date>\n`;
-        xml += `        </member>\n`;
-      });
-      xml += `      </members>\n`;
-      xml += `    </team>\n`;
+  allUsers.forEach(u => {
+    const team = allTeams.find(t => t.id === u.team_id);
+
+    data.push({
+      "الاسم": u.full_name || '',
+      "الإيميل": u.icpc_email || '',
+      "رقم الكارنيه": u.student_id || '',
+      "الهاتف": u.phone || '',
+      "الرقم القومي": u.national_id || '',
+      "تاريخ الميلاد": u.dob || '',
+      "تاريخ الالتحاق": u.enrollment_date || '',
+      "الفريق": team ? team.name : 'بدون فريق'
     });
-    xml += `  </teams>\n`;
+  });
 
-    xml += `  <users_without_team>\n`;
-    allUsers.filter(u => !u.team_id).forEach(u => {
-      xml += `    <user>\n`;
-      xml += `      <full_name>${escXml(u.full_name||'')}</full_name>\n`;
-      xml += `      <icpc_email>${escXml(u.icpc_email||'')}</icpc_email>\n`;
-      xml += `      <student_id>${escXml(u.student_id||'')}</student_id>\n`;
-      xml += `      <phone>${escXml(u.phone||'')}</phone>\n`;
-      xml += `      <national_id>${escXml(u.national_id||'')}</national_id>\n`;
-      xml += `      <dob>${escXml(u.dob||'')}</dob>\n`;
-      xml += `      <enrollment_date>${escXml(u.enrollment_date||'')}</enrollment_date>\n`;
-      xml += `    </user>\n`;
-    });
-    xml += `  </users_without_team>\n`;
-    xml += `</ecpc_registration>`;
+  const worksheet = XLSX.utils.json_to_sheet(data);
+  const workbook  = XLSX.utils.book_new();
 
-    const blob = new Blob([xml], { type: 'application/xml;charset=utf-8' });
-    const a    = document.createElement('a');
-    a.href     = URL.createObjectURL(blob);
-    a.download = `ecpc_registrations_${date}.xml`;
-    a.click();
-    URL.revokeObjectURL(a.href);
-    showToast('تم تصدير البيانات بنجاح 📥', 'success');
-  };
+  XLSX.utils.book_append_sheet(workbook, worksheet, "المتسابقين");
+
+  const date = new Date().toISOString().split('T')[0];
+  XLSX.writeFile(workbook, `ecpc_users_${date}.xlsx`);
+
+  showToast('تم تصدير Excel بنجاح 📊', 'success');
+};
 
   // ════════════════════════════════════════
   //  MODAL HELPERS
