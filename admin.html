@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>لوحة الإدارة — ECPC</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="icon" href="assets/logo.png" />
+</head>
+<body>
+
+<!-- ══════════════════ NAVBAR ══════════════════ -->
+<nav class="navbar">
+  <a class="navbar-brand" href="index.html">
+    <img src="assets/logo.png" alt="HNU ICPC Community Logo" class="navbar-logo" />
+    <div class="navbar-title">
+      <span class="main-title">لوحة الإدارة</span>
+      <span class="sub-title">HNU ICPC Community — ECPC</span>
+    </div>
+  </a>
+  <div class="navbar-links">
+    <a href="index.html" class="nav-link">التسجيل</a>
+    <a href="admin.html" class="nav-link active">الإدارة</a>
+    <button class="btn btn-secondary btn-sm" id="logoutBtn" onclick="logout()" style="display:none;">
+      🚪 خروج
+    </button>
+  </div>
+</nav>
+
+<!-- ══════════════════ TOAST ══════════════════ -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ══════════════════ LOGIN SCREEN ══════════════════ -->
+<div id="loginScreen" class="login-wrap">
+  <div class="login-card">
+    <img src="assets/logo.png" alt="Logo" class="login-logo" />
+    <h2>دخول الإدارة</h2>
+    <p>أدخل كلمة السر للوصول إلى لوحة التحكم</p>
+    <div id="loginAlert"></div>
+    <div class="form-group" style="text-align:right; margin-bottom:15px;">
+  <label>الإيميل</label>
+  <input type="email" id="adminEmail" placeholder="أدخل الإيميل"
+         onkeydown="if(event.key==='Enter') adminLogin()" />
+</div>
+
+<div class="form-group" style="text-align:right; margin-bottom:20px;">
+  <label>كلمة السر</label>
+  <div class="password-group">
+    <input type="password" id="adminPassword" placeholder="أدخل كلمة السر"
+           onkeydown="if(event.key==='Enter') adminLogin()" />
+    <button class="toggle-password" onclick="togglePass('adminPassword',this)" type="button">👁</button>
+  </div>
+</div>
+    <button class="btn btn-primary btn-full" onclick="adminLogin()">🔐 دخول</button>
+    <p style="margin-top:20px; font-size:0.78rem; color:var(--text-dim);">
+    </p>
+  </div>
+</div>
+
+<!-- ══════════════════ ADMIN DASHBOARD ══════════════════ -->
+<div id="adminDashboard" style="display:none;">
+<div class="page-container wide" style="padding-top:30px;">
+
+  <!-- Stats -->
+  <div class="stats-grid" id="statsGrid">
+    <div class="stat-card">
+      <div class="stat-icon blue">👥</div>
+      <div class="stat-info">
+        <div class="stat-value" id="statUsers">—</div>
+        <div class="stat-label">إجمالي المتسابقين</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon yellow">🏅</div>
+      <div class="stat-info">
+        <div class="stat-value" id="statTeams">—</div>
+        <div class="stat-label">إجمالي الفرق</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon green">✅</div>
+      <div class="stat-info">
+        <div class="stat-value" id="statWithTeam">—</div>
+        <div class="stat-label">مسجّلين في فريق</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon red">🙋</div>
+      <div class="stat-info">
+        <div class="stat-value" id="statNoTeam">—</div>
+        <div class="stat-label">بدون فريق</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="admin-tabs">
+    <button class="admin-tab active" onclick="switchTab('users')">👥 المتسابقون</button>
+    <button class="admin-tab" onclick="switchTab('teams')">🏅 الفرق</button>
+  </div>
+
+  <!-- ─── Users Tab ─── -->
+  <div id="tabUsers">
+    <div class="search-bar">
+      <div class="search-input-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="userSearch" placeholder="ابحث بالاسم أو الإيميل أو رقم الكارنيه..."
+               oninput="filterUsers()" />
+      </div>
+      <select id="teamFilter" onchange="filterUsers()"
+              style="background:var(--input-bg);border:1px solid var(--border);color:var(--text);
+                     padding:11px 14px;border-radius:8px;font-family:inherit;font-size:0.9rem;outline:none;">
+        <option value="">كل الفرق</option>
+        <option value="none">بدون فريق</option>
+      </select>
+      <button class="btn btn-primary btn-sm" onclick="openCreateTeamModal()">➕ فريق جديد</button>
+      <button class="btn btn-success btn-sm" onclick="exportXML()">📥 تصدير XML</button>
+    </div>
+
+    <div class="table-wrapper">
+      <table id="usersTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>الاسم</th>
+            <th>الإيميل ICPC</th>
+            <th>رقم الكارنيه</th>
+            <th>الهاتف</th>
+            <th>تاريخ الميلاد</th>
+            <th>الفريق</th>
+            <th>الإجراءات</th>
+          </tr>
+        </thead>
+        <tbody id="usersTableBody">
+          <tr><td colspan="8" style="text-align:center;padding:40px;">
+            <div class="spinner" style="margin:auto;"></div>
+          </td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ─── Teams Tab ─── -->
+  <div id="tabTeams" style="display:none;">
+    <div class="search-bar">
+      <div class="search-input-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="teamSearch" placeholder="ابحث باسم الفريق..."
+               oninput="filterTeams()" />
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="openCreateTeamModal()">➕ فريق جديد</button>
+    </div>
+
+    <div class="table-wrapper">
+      <table id="teamsTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>اسم الفريق</th>
+            <th>الأعضاء</th>
+            <th>الحالة</th>
+            <th>الإجراءات</th>
+          </tr>
+        </thead>
+        <tbody id="teamsTableBody">
+          <tr><td colspan="5" style="text-align:center;padding:40px;">
+            <div class="spinner" style="margin:auto;"></div>
+          </td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- end page-container -->
+</div><!-- end adminDashboard -->
+
+<!-- ══════════════════ MODALS ══════════════════ -->
+
+<!-- Edit User Modal -->
+<div id="editUserModal" class="modal-overlay" style="display:none;" onclick="closeModal('editUserModal',event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModalById('editUserModal')">✕</button>
+    <h3>✏️ تعديل بيانات المتسابق</h3>
+    <input type="hidden" id="editUserId" />
+    <div class="form-grid single">
+      <div class="form-group">
+        <label>الاسم الكامل</label>
+        <input type="text" id="editFullName" />
+      </div>
+      <div class="form-group">
+        <label>البريد ICPC</label>
+        <input type="email" id="editIcpcEmail" />
+      </div>
+      <div class="form-group">
+        <label>رقم الهاتف</label>
+        <input type="tel" id="editPhone" />
+      </div>
+      <div class="form-group">
+        <label>رقم الكارنيه</label>
+        <input type="text" id="editStudentId" />
+      </div>
+      <div class="form-group">
+        <label>تاريخ الميلاد</label>
+        <input type="date" id="editDob" />
+      </div>
+      <div class="form-group">
+        <label>تاريخ الالتحاق</label>
+        <input type="date" id="editEnrollment" />
+      </div>
+      <div class="form-group">
+        <label>الرقم القومي</label>
+        <input type="text" id="editNationalId" maxlength="14" />
+      </div>
+      <div class="form-group">
+        <label>الفريق</label>
+        <select id="editTeamSelect">
+          <option value="">بدون فريق</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:24px;">
+      <button class="btn btn-primary" onclick="saveUserEdit()">💾 حفظ</button>
+      <button class="btn btn-secondary" onclick="closeModalById('editUserModal')">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- Create Team Modal -->
+<div id="createTeamModal" class="modal-overlay" style="display:none;" onclick="closeModal('createTeamModal',event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModalById('createTeamModal')">✕</button>
+    <h3>➕ إنشاء فريق جديد</h3>
+    <div class="form-grid single">
+      <div class="form-group">
+        <label>اسم الفريق <span class="req">*</span></label>
+        <input type="text" id="modalTeamName" placeholder="مثال: Code Warriors" />
+      </div>
+      <div class="form-group">
+        <label>كلمة السر <span class="req">*</span></label>
+        <div class="password-group">
+          <input type="password" id="modalTeamPassword" placeholder="كلمة سر الفريق" />
+          <button class="toggle-password" onclick="togglePass('modalTeamPassword',this)" type="button">👁</button>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:24px;">
+      <button class="btn btn-primary" onclick="adminCreateTeam()">🚀 إنشاء</button>
+      <button class="btn btn-secondary" onclick="closeModalById('createTeamModal')">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- Team Members Modal -->
+<div id="teamMembersModal" class="modal-overlay" style="display:none;" onclick="closeModal('teamMembersModal',event)">
+  <div class="modal" style="max-width:680px;">
+    <button class="modal-close" onclick="closeModalById('teamMembersModal')">✕</button>
+    <h3 id="teamMembersTitle">👥 أعضاء الفريق</h3>
+    <div id="teamMembersContent"></div>
+  </div>
+</div>
+
+<!-- Confirm Delete Modal -->
+<div id="confirmModal" class="modal-overlay" style="display:none;" onclick="closeModal('confirmModal',event)">
+  <div class="modal" style="max-width:420px; text-align:center;">
+    <button class="modal-close" onclick="closeModalById('confirmModal')">✕</button>
+    <div style="font-size:3rem;margin-bottom:16px;">⚠️</div>
+    <h3 id="confirmTitle" style="border:none;padding:0;margin-bottom:12px;">تأكيد الحذف</h3>
+    <p id="confirmMsg" style="color:var(--text-muted);margin-bottom:28px;font-size:0.92rem;"></p>
+    <div style="display:flex;gap:10px;justify-content:center;">
+      <button class="btn btn-danger" id="confirmOkBtn">🗑️ تأكيد</button>
+      <button class="btn btn-secondary" onclick="closeModalById('confirmModal')">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ SCRIPTS ══════════════════ -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import {
+    getFirestore, collection, getDocs, doc,
+    updateDoc, deleteDoc, addDoc, query, where,
+    onSnapshot, increment, getDoc, writeBatch
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, signOut } 
+from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  // ── Init Firebase ──
+  const firebaseConfig = {
+    apiKey: "AIzaSyCCF5WQXu7c17SalqemvGGsywRpA6Cyog8",
+    authDomain: "ecpc-967a8.firebaseapp.com",
+    projectId: "ecpc-967a8",
+    storageBucket: "ecpc-967a8.firebasestorage.app",
+    messagingSenderId: "232739819994",
+    appId: "1:232739819994:web:6db066b75c14fd8efbb0e3"
+  };
+  const app = initializeApp(firebaseConfig);
+  const db  = getFirestore(app);
+const auth = getAuth(app);
+  // ── Admin password ──
+
+  // ── State ──
+  let allUsers    = [];
+  let allTeams    = [];
+  let usersUnsub  = null;
+  let teamsUnsub  = null;
+
+  // ════════════════════════════════════════
+  //  AUTH
+  // ════════════════════════════════════════
+  
+
+  window.logout = async function() {
+  sessionStorage.removeItem('admin_auth');
+  await signOut(auth);
+  location.reload();
+};
+
+  window.togglePass = function(id, btn) {
+    const inp = document.getElementById(id);
+    if (inp.type === 'password') { inp.type = 'text'; btn.textContent = '🙈'; }
+    else                         { inp.type = 'password'; btn.textContent = '👁'; }
+  };
+
+  // Auto-login if session exists
+ window.adminLogin = async function() {
+  const email = document.getElementById('adminEmail').value;
+  const password = document.getElementById('adminPassword').value;
+  const alertEl = document.getElementById('loginAlert');
+
+  try {
+    const userCred = await signInWithEmailAndPassword(auth, email, password);
+
+    const tokenResult = await userCred.user.getIdTokenResult();
+
+    if (tokenResult.claims.admin) {
+      sessionStorage.setItem('admin_auth', '1');
+
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('adminDashboard').style.display = 'block';
+      document.getElementById('logoutBtn').style.display = 'inline-flex';
+
+      initDashboard();
+    } else {
+      alertEl.innerHTML = '<div class="alert alert-error">❌ ليس لديك صلاحية Admin</div>';
+      await signOut(auth);
+    }
+
+  } catch (err) {
+    alertEl.innerHTML = `<div class="alert alert-error">❌ ${err.message}</div>`;
+  }
+};
+  // ════════════════════════════════════════
+  //  INIT DASHBOARD — Real-time listeners
+  // ════════════════════════════════════════
+  function initDashboard() {
+    // Teams listener
+    teamsUnsub = onSnapshot(collection(db, 'teams'), snap => {
+      allTeams = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderTeams();
+      updateStats();
+      populateTeamFilter();
+      populateEditTeamSelect();
+    });
+
+    // Users listener
+    usersUnsub = onSnapshot(collection(db, 'users'), snap => {
+      allUsers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderUsers();
+      updateStats();
+    });
+  }
+
+  // ════════════════════════════════════════
+  //  STATS
+  // ════════════════════════════════════════
+  function updateStats() {
+    document.getElementById('statUsers').textContent    = allUsers.length;
+    document.getElementById('statTeams').textContent    = allTeams.length;
+    document.getElementById('statWithTeam').textContent = allUsers.filter(u => u.team_id).length;
+    document.getElementById('statNoTeam').textContent   = allUsers.filter(u => !u.team_id).length;
+  }
+
+  // ════════════════════════════════════════
+  //  TABS
+  // ════════════════════════════════════════
+  window.switchTab = function(tab) {
+    document.getElementById('tabUsers').style.display  = tab === 'users'  ? 'block' : 'none';
+    document.getElementById('tabTeams').style.display  = tab === 'teams'  ? 'block' : 'none';
+    document.querySelectorAll('.admin-tab').forEach((t,i) => {
+      t.classList.toggle('active', (i === 0 && tab === 'users') || (i === 1 && tab === 'teams'));
+    });
+  };
+
+  // ════════════════════════════════════════
+  //  RENDER USERS TABLE
+  // ════════════════════════════════════════
+  function renderUsers(data = allUsers) {
+    const tbody = document.getElementById('usersTableBody');
+    if (!data.length) {
+      tbody.innerHTML = `<tr><td colspan="8">
+        <div class="empty-state">
+          <span class="empty-icon">😕</span>
+          <h3>لا يوجد متسابقون</h3>
+        </div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = data.map((u, i) => {
+      const team = allTeams.find(t => t.id === u.team_id);
+      return `<tr>
+        <td style="color:var(--text-muted);font-size:0.82rem;">${i+1}</td>
+        <td><strong>${escHtml(u.full_name || '—')}</strong></td>
+        <td style="font-size:0.82rem;">${escHtml(u.icpc_email || '—')}</td>
+        <td>${escHtml(u.student_id || '—')}</td>
+        <td dir="ltr">${escHtml(u.phone || '—')}</td>
+        <td style="font-size:0.82rem;">${u.dob || '—'}</td>
+        <td>
+          ${team
+            ? `<span class="badge badge-yellow">🏅 ${escHtml(team.name)}</span>`
+            : `<span class="badge badge-blue">بدون فريق</span>`}
+        </td>
+        <td>
+          <div class="td-actions">
+            <button class="btn btn-secondary btn-sm" onclick="openEditUser('${u.id}')">✏️</button>
+            <button class="btn btn-danger btn-sm"    onclick="confirmDeleteUser('${u.id}','${escHtml(u.full_name||'')}')">🗑️</button>
+            ${u.team_id ? `<button class="btn btn-secondary btn-sm" onclick="removeFromTeam('${u.id}')">🚫 فصل</button>` : ''}
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  // ════════════════════════════════════════
+  //  RENDER TEAMS TABLE
+  // ════════════════════════════════════════
+  function renderTeams(data = allTeams) {
+    const tbody = document.getElementById('teamsTableBody');
+    if (!data.length) {
+      tbody.innerHTML = `<tr><td colspan="5">
+        <div class="empty-state">
+          <span class="empty-icon">😕</span>
+          <h3>لا توجد فرق</h3>
+        </div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = data.map((t, i) => {
+      const count = allUsers.filter(u => u.team_id === t.id).length;
+      const full  = count >= 3;
+      return `<tr>
+        <td style="color:var(--text-muted);font-size:0.82rem;">${i+1}</td>
+        <td><strong>🏅 ${escHtml(t.name)}</strong></td>
+        <td>
+          <div style="display:flex;gap:6px;align-items:center;">
+            ${[0,1,2].map(n=>`<div class="member-dot${n<count?' filled':''}"></div>`).join('')}
+            <span style="font-size:0.82rem;color:var(--text-muted);margin-right:4px;">${count}/3</span>
+          </div>
+        </td>
+        <td>
+          ${full
+            ? `<span class="badge badge-red">🔒 ممتلئ</span>`
+            : `<span class="badge badge-green">✅ متاح (${3-count} مقعد)</span>`}
+        </td>
+        <td>
+          <div class="td-actions">
+            <button class="btn btn-secondary btn-sm" onclick="openTeamMembers('${t.id}')">👁 الأعضاء</button>
+            <button class="btn btn-danger btn-sm"    onclick="confirmDeleteTeam('${t.id}','${escHtml(t.name)}')">🗑️</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  // ════════════════════════════════════════
+  //  FILTER
+  // ════════════════════════════════════════
+  window.filterUsers = function() {
+    const q  = document.getElementById('userSearch').value.toLowerCase();
+    const tf = document.getElementById('teamFilter').value;
+    const filtered = allUsers.filter(u => {
+      const matchQ  = !q || (u.full_name||'').toLowerCase().includes(q)
+                         || (u.icpc_email||'').toLowerCase().includes(q)
+                         || (u.student_id||'').toLowerCase().includes(q);
+      const matchTF = !tf || (tf === 'none' ? !u.team_id : u.team_id === tf);
+      return matchQ && matchTF;
+    });
+    renderUsers(filtered);
+  };
+
+  window.filterTeams = function() {
+    const q = document.getElementById('teamSearch').value.toLowerCase();
+    renderTeams(allTeams.filter(t => (t.name||'').toLowerCase().includes(q)));
+  };
+
+  function populateTeamFilter() {
+    const sel = document.getElementById('teamFilter');
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">كل الفرق</option><option value="none">بدون فريق</option>';
+    allTeams.forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = t.id; opt.textContent = t.name;
+      if (t.id === cur) opt.selected = true;
+      sel.appendChild(opt);
+    });
+  }
+
+  function populateEditTeamSelect() {
+    const sel = document.getElementById('editTeamSelect');
+    const cur = sel ? sel.value : '';
+    if (!sel) return;
+    sel.innerHTML = '<option value="">بدون فريق</option>';
+    allTeams.forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = t.id; opt.textContent = `${t.name} (${t.members_count}/3)`;
+      if (t.id === cur) opt.selected = true;
+      sel.appendChild(opt);
+    });
+  }
+
+  // ════════════════════════════════════════
+  //  EDIT USER
+  // ════════════════════════════════════════
+  window.openEditUser = function(userId) {
+    const u = allUsers.find(x => x.id === userId);
+    if (!u) return;
+    document.getElementById('editUserId').value       = userId;
+    document.getElementById('editFullName').value     = u.full_name || '';
+    document.getElementById('editIcpcEmail').value    = u.icpc_email || '';
+    document.getElementById('editPhone').value        = u.phone || '';
+    document.getElementById('editStudentId').value    = u.student_id || '';
+    document.getElementById('editDob').value          = u.dob || '';
+    document.getElementById('editEnrollment').value   = u.enrollment_date || '';
+    document.getElementById('editNationalId').value   = u.national_id || '';
+    populateEditTeamSelect();
+    document.getElementById('editTeamSelect').value   = u.team_id || '';
+    document.getElementById('editUserModal').style.display = 'flex';
+  };
+
+  window.saveUserEdit = async function() {
+    const userId       = document.getElementById('editUserId').value;
+    const newTeamId    = document.getElementById('editTeamSelect').value || null;
+    const user         = allUsers.find(x => x.id === userId);
+    const oldTeamId    = user ? user.team_id : null;
+
+    const updatedData = {
+      full_name:       document.getElementById('editFullName').value.trim(),
+      icpc_email:      document.getElementById('editIcpcEmail').value.trim().toLowerCase(),
+      phone:           document.getElementById('editPhone').value.trim(),
+      student_id:      document.getElementById('editStudentId').value.trim(),
+      dob:             document.getElementById('editDob').value,
+      enrollment_date: document.getElementById('editEnrollment').value,
+      national_id:     document.getElementById('editNationalId').value.trim(),
+      team_id:         newTeamId
+    };
+
+    try {
+      const batch = writeBatch(db);
+
+      // Update user
+      batch.update(doc(db, 'users', userId), updatedData);
+
+      // Handle team member_count changes
+      if (oldTeamId !== newTeamId) {
+        if (oldTeamId)  batch.update(doc(db,'teams',oldTeamId), { members_count: increment(-1) });
+        if (newTeamId) {
+          // Check capacity
+          const newTeam = allTeams.find(t => t.id === newTeamId);
+          if (newTeam && newTeam.members_count >= 3) {
+            showToast('الفريق ممتلئ! لا يمكن إضافة عضو جديد', 'error');
+            return;
+          }
+          batch.update(doc(db,'teams',newTeamId), { members_count: increment(1) });
+        }
+      }
+
+      await batch.commit();
+      closeModalById('editUserModal');
+      showToast('تم تحديث البيانات بنجاح ✅', 'success');
+    } catch (err) {
+      showToast('خطأ في التحديث: ' + err.message, 'error');
+    }
+  };
+
+  // ════════════════════════════════════════
+  //  DELETE USER
+  // ════════════════════════════════════════
+  window.confirmDeleteUser = function(userId, name) {
+    document.getElementById('confirmTitle').textContent = 'حذف متسابق';
+    document.getElementById('confirmMsg').textContent   = `هل أنت متأكد من حذف "${name}"؟ هذا الإجراء لا يمكن التراجع عنه.`;
+    document.getElementById('confirmOkBtn').onclick = () => deleteUser(userId);
+    document.getElementById('confirmModal').style.display = 'flex';
+  };
+
+  async function deleteUser(userId) {
+    const user = allUsers.find(u => u.id === userId);
+    try {
+      const batch = writeBatch(db);
+      batch.delete(doc(db, 'users', userId));
+      if (user && user.team_id) {
+        batch.update(doc(db,'teams',user.team_id), { members_count: increment(-1) });
+      }
+      await batch.commit();
+      closeModalById('confirmModal');
+      showToast('تم حذف المتسابق بنجاح 🗑️', 'success');
+    } catch (err) {
+      showToast('خطأ في الحذف: ' + err.message, 'error');
+    }
+  }
+
+  // ════════════════════════════════════════
+  //  REMOVE FROM TEAM
+  // ════════════════════════════════════════
+  window.removeFromTeam = async function(userId) {
+    const user = allUsers.find(u => u.id === userId);
+    if (!user || !user.team_id) return;
+    try {
+      const batch = writeBatch(db);
+      batch.update(doc(db,'users',userId), { team_id: null });
+      batch.update(doc(db,'teams',user.team_id), { members_count: increment(-1) });
+      await batch.commit();
+      showToast('تم فصل المتسابق من الفريق ✅', 'success');
+    } catch (err) {
+      showToast('خطأ: ' + err.message, 'error');
+    }
+  };
+
+  // ════════════════════════════════════════
+  //  TEAM MEMBERS MODAL
+  // ════════════════════════════════════════
+  window.openTeamMembers = function(teamId) {
+    const team    = allTeams.find(t => t.id === teamId);
+    const members = allUsers.filter(u => u.team_id === teamId);
+    document.getElementById('teamMembersTitle').textContent = `👥 أعضاء فريق "${team?.name}"`;
+
+    const freeUsers = allUsers.filter(u => !u.team_id);
+
+    document.getElementById('teamMembersContent').innerHTML = `
+      ${members.length === 0
+        ? '<div class="empty-state"><span class="empty-icon">😕</span><p>لا يوجد أعضاء في هذا الفريق</p></div>'
+        : `<div class="table-wrapper" style="margin-bottom:20px;">
+            <table>
+              <thead><tr><th>الاسم</th><th>الإيميل</th><th>الكارنيه</th><th>إجراء</th></tr></thead>
+              <tbody>
+                ${members.map(m => `<tr>
+                  <td>${escHtml(m.full_name||'—')}</td>
+                  <td style="font-size:0.82rem;">${escHtml(m.icpc_email||'—')}</td>
+                  <td>${escHtml(m.student_id||'—')}</td>
+                  <td><button class="btn btn-danger btn-sm"
+                        onclick="removeFromTeam('${m.id}');closeModalById('teamMembersModal')">
+                        🚫 فصل</button></td>
+                </tr>`).join('')}
+              </tbody>
+            </table>
+          </div>`}
+
+      ${members.length < 3 && freeUsers.length > 0 ? `
+        <div class="divider">إضافة عضو من غير الفرق</div>
+        <div class="form-group">
+          <label>اختار متسابق</label>
+          <select id="addMemberSelect" style="background:var(--input-bg);border:1px solid var(--border);
+            color:var(--text);padding:11px 14px;border-radius:8px;font-family:inherit;font-size:0.9rem;
+            outline:none;width:100%;">
+            <option value="">— اختار —</option>
+            ${freeUsers.map(u => `<option value="${u.id}">${escHtml(u.full_name)} — ${escHtml(u.icpc_email||'')}</option>`).join('')}
+          </select>
+        </div>
+        <button class="btn btn-success" style="margin-top:12px;"
+          onclick="addMemberToTeam('${teamId}')">➕ إضافة للفريق</button>
+      ` : (members.length >= 3 ? '<div class="alert alert-info" style="margin-top:12px;">🔒 الفريق ممتلئ (3/3)</div>' : '')}
+    `;
+
+    document.getElementById('teamMembersModal').style.display = 'flex';
+  };
+
+  window.addMemberToTeam = async function(teamId) {
+    const userId = document.getElementById('addMemberSelect').value;
+    if (!userId) { showToast('اختار متسابق الأول', 'error'); return; }
+    const team = allTeams.find(t => t.id === teamId);
+    if (team && team.members_count >= 3) { showToast('الفريق ممتلئ!', 'error'); return; }
+    try {
+      const batch = writeBatch(db);
+      batch.update(doc(db,'users',userId), { team_id: teamId });
+      batch.update(doc(db,'teams',teamId), { members_count: increment(1) });
+      await batch.commit();
+      closeModalById('teamMembersModal');
+      showToast('تم إضافة العضو بنجاح ✅', 'success');
+    } catch (err) {
+      showToast('خطأ: ' + err.message, 'error');
+    }
+  };
+
+  // ════════════════════════════════════════
+  //  CREATE TEAM (Admin)
+  // ════════════════════════════════════════
+  window.openCreateTeamModal = function() {
+    document.getElementById('modalTeamName').value     = '';
+    document.getElementById('modalTeamPassword').value = '';
+    document.getElementById('createTeamModal').style.display = 'flex';
+  };
+
+  window.adminCreateTeam = async function() {
+    const name = document.getElementById('modalTeamName').value.trim();
+    const pwd  = document.getElementById('modalTeamPassword').value.trim();
+    if (!name) { showToast('اكتب اسم الفريق', 'error'); return; }
+    if (!pwd)  { showToast('اكتب كلمة السر', 'error'); return; }
+
+    const q = query(collection(db,'teams'), where('name','==',name));
+    const ex = await getDocs(q);
+    if (!ex.empty) { showToast('اسم الفريق موجود بالفعل', 'error'); return; }
+
+    try {
+      await addDoc(collection(db,'teams'), {
+        name, password: pwd, members_count: 0,
+        created_at: new Date().toISOString()
+      });
+      closeModalById('createTeamModal');
+      showToast(`تم إنشاء فريق "${name}" بنجاح 🎉`, 'success');
+    } catch (err) {
+      showToast('خطأ: ' + err.message, 'error');
+    }
+  };
+
+  // ════════════════════════════════════════
+  //  DELETE TEAM
+  // ════════════════════════════════════════
+  window.confirmDeleteTeam = function(teamId, name) {
+    document.getElementById('confirmTitle').textContent = 'حذف فريق';
+    document.getElementById('confirmMsg').textContent   =
+      `هل أنت متأكد من حذف فريق "${name}"؟ سيتم فصل جميع الأعضاء من الفريق.`;
+    document.getElementById('confirmOkBtn').onclick = () => deleteTeam(teamId);
+    document.getElementById('confirmModal').style.display = 'flex';
+  };
+
+  async function deleteTeam(teamId) {
+    try {
+      const batch = writeBatch(db);
+      // Unlink all members
+      allUsers.filter(u => u.team_id === teamId).forEach(u => {
+        batch.update(doc(db,'users',u.id), { team_id: null });
+      });
+      batch.delete(doc(db,'teams',teamId));
+      await batch.commit();
+      closeModalById('confirmModal');
+      showToast('تم حذف الفريق وفصل الأعضاء ✅', 'success');
+    } catch (err) {
+      showToast('خطأ: ' + err.message, 'error');
+    }
+  }
+
+  // ════════════════════════════════════════
+  //  EXPORT XML
+  // ════════════════════════════════════════
+  window.exportXML = function() {
+    const date = new Date().toISOString().split('T')[0];
+    let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+    xml += `<ecpc_registration exported="${date}">\n`;
+    xml += `  <summary>\n`;
+    xml += `    <total_users>${allUsers.length}</total_users>\n`;
+    xml += `    <total_teams>${allTeams.length}</total_teams>\n`;
+    xml += `    <users_with_team>${allUsers.filter(u=>u.team_id).length}</users_with_team>\n`;
+    xml += `    <users_without_team>${allUsers.filter(u=>!u.team_id).length}</users_without_team>\n`;
+    xml += `  </summary>\n`;
+
+    xml += `  <teams>\n`;
+    allTeams.forEach(t => {
+      const members = allUsers.filter(u => u.team_id === t.id);
+      xml += `    <team id="${escXml(t.id)}">\n`;
+      xml += `      <name>${escXml(t.name)}</name>\n`;
+      xml += `      <members_count>${t.members_count}</members_count>\n`;
+      xml += `      <members>\n`;
+      members.forEach(m => {
+        xml += `        <member>\n`;
+        xml += `          <full_name>${escXml(m.full_name||'')}</full_name>\n`;
+        xml += `          <icpc_email>${escXml(m.icpc_email||'')}</icpc_email>\n`;
+        xml += `          <student_id>${escXml(m.student_id||'')}</student_id>\n`;
+        xml += `          <phone>${escXml(m.phone||'')}</phone>\n`;
+        xml += `          <national_id>${escXml(m.national_id||'')}</national_id>\n`;
+        xml += `          <dob>${escXml(m.dob||'')}</dob>\n`;
+        xml += `          <enrollment_date>${escXml(m.enrollment_date||'')}</enrollment_date>\n`;
+        xml += `        </member>\n`;
+      });
+      xml += `      </members>\n`;
+      xml += `    </team>\n`;
+    });
+    xml += `  </teams>\n`;
+
+    xml += `  <users_without_team>\n`;
+    allUsers.filter(u => !u.team_id).forEach(u => {
+      xml += `    <user>\n`;
+      xml += `      <full_name>${escXml(u.full_name||'')}</full_name>\n`;
+      xml += `      <icpc_email>${escXml(u.icpc_email||'')}</icpc_email>\n`;
+      xml += `      <student_id>${escXml(u.student_id||'')}</student_id>\n`;
+      xml += `      <phone>${escXml(u.phone||'')}</phone>\n`;
+      xml += `      <national_id>${escXml(u.national_id||'')}</national_id>\n`;
+      xml += `      <dob>${escXml(u.dob||'')}</dob>\n`;
+      xml += `      <enrollment_date>${escXml(u.enrollment_date||'')}</enrollment_date>\n`;
+      xml += `    </user>\n`;
+    });
+    xml += `  </users_without_team>\n`;
+    xml += `</ecpc_registration>`;
+
+    const blob = new Blob([xml], { type: 'application/xml;charset=utf-8' });
+    const a    = document.createElement('a');
+    a.href     = URL.createObjectURL(blob);
+    a.download = `ecpc_registrations_${date}.xml`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    showToast('تم تصدير البيانات بنجاح 📥', 'success');
+  };
+
+  // ════════════════════════════════════════
+  //  MODAL HELPERS
+  // ════════════════════════════════════════
+  window.closeModalById = function(id) {
+    document.getElementById(id).style.display = 'none';
+  };
+  window.closeModal = function(id, e) {
+    if (e.target.id === id) document.getElementById(id).style.display = 'none';
+  };
+
+  // ════════════════════════════════════════
+  //  TOAST
+  // ════════════════════════════════════════
+  function showToast(msg, type = 'info') {
+    const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `<span>${icons[type]}</span> ${msg}`;
+    container.appendChild(toast);
+    setTimeout(() => {
+      toast.style.animation = 'toastOut 0.35s ease forwards';
+      setTimeout(() => toast.remove(), 350);
+    }, 3500);
+  }
+  window.showToast = showToast;
+
+  // ── Escape helpers ──
+  function escHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+                      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function escXml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+                      .replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+                      .replace(/'/g,'&apos;');
+  }
+</script>
+
+</body>
+</html>

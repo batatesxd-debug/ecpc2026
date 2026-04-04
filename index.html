@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ECPC Registration — HNU ICPC Community</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="icon" href="assets/logo.png" />
+</head>
+<body>
+
+<!-- ══════════════════ NAVBAR ══════════════════ -->
+<nav class="navbar">
+  <a class="navbar-brand" href="index.html">
+    <img src="assets/logo.png" alt="HNU ICPC Community Logo" class="navbar-logo" />
+    <div class="navbar-title">
+      <span class="main-title">ECPC Registration</span>
+      <span class="sub-title">HNU ICPC Community</span>
+    </div>
+  </a>
+  <div class="navbar-links">
+    <a href="index.html" class="nav-link active">التسجيل</a>
+    <a href="admin.html" class="nav-link">لوحة الإدارة</a>
+  </div>
+</nav>
+
+<!-- ══════════════════ TOAST ══════════════════ -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ══════════════════ MAIN ══════════════════ -->
+<div class="page-container" id="appRoot">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-badge">🏆 ECPC 2025</div>
+    <h1>سجّل في المسابقة</h1>
+    <p>سجّل بياناتك وانضم إلى فريقك للمشاركة في مسابقة ECPC لهذا العام</p>
+  </div>
+
+  <!-- Steps Indicator -->
+  <div class="steps-indicator" id="stepsIndicator">
+    <div class="step-item active" id="step1Indicator">
+      <div class="step-circle">١</div>
+      <div class="step-label">هل عندك فريق؟</div>
+    </div>
+    <div class="step-line" id="line1"></div>
+    <div class="step-item" id="step2Indicator">
+      <div class="step-circle">٢</div>
+      <div class="step-label">الفريق</div>
+    </div>
+    <div class="step-line" id="line2"></div>
+    <div class="step-item" id="step3Indicator">
+      <div class="step-circle">٣</div>
+      <div class="step-label">بياناتك</div>
+    </div>
+  </div>
+
+  <!-- ─── Step 1: Has Team? ─── -->
+  <div id="stepHasTeam" class="card question-card">
+    <span class="q-icon">🤝</span>
+    <h2>هل عندك فريق؟</h2>
+    <p>اختار إذا كنت عضو في فريق موجود أو لسه</p>
+    <div class="choice-buttons">
+      <button class="choice-btn" id="btnHasTeam" onclick="selectHasTeam(true)">
+        <span class="btn-icon">✅</span>
+        نعم، عندي فريق
+      </button>
+      <button class="choice-btn" id="btnNoTeam" onclick="selectHasTeam(false)">
+        <span class="btn-icon">🙋</span>
+        لا، مش عندي
+      </button>
+    </div>
+  </div>
+
+  <!-- ─── Step 2a: Team Selection ─── -->
+  <div id="stepTeam" class="card" style="display:none;">
+    <div class="card-header">
+      <div class="icon">👥</div>
+      <div>
+        <h2>اختار فريقك</h2>
+        <p>انضم لفريق موجود أو أنشئ فريق جديد</p>
+      </div>
+    </div>
+
+    <!-- Available Teams -->
+    <div class="section-title">⚡ الفرق المتاحة</div>
+    <div id="teamsLoading" class="alert alert-info">
+      <div class="spinner"></div> جاري تحميل الفرق...
+    </div>
+    <div id="teamsList" class="teams-grid" style="display:none;"></div>
+    <div id="noTeamsMsg" class="empty-state" style="display:none;">
+      <span class="empty-icon">😕</span>
+      <h3>مفيش فرق متاحة دلوقتي</h3>
+      <p>أنشئ فريق جديد من الأسفل</p>
+    </div>
+
+    <!-- Join Selected Team -->
+    <div id="joinTeamSection" style="display:none;">
+      <div class="divider">انضمام للفريق المختار</div>
+      <div class="card" style="background:var(--card2); padding:22px;">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
+          <span style="font-size:1.2rem;">🔑</span>
+          <strong id="selectedTeamName" style="color:var(--accent);">اسم الفريق</strong>
+        </div>
+        <div class="form-group">
+          <label>كلمة سر الفريق <span class="req">*</span></label>
+          <div class="password-group">
+            <input type="password" id="joinPassword" placeholder="أدخل كلمة السر" />
+            <button class="toggle-password" onclick="togglePass('joinPassword',this)" type="button">👁</button>
+          </div>
+        </div>
+        <button class="btn btn-primary" style="margin-top:14px;" onclick="joinTeam()">
+          ➕ انضم للفريق
+        </button>
+      </div>
+    </div>
+
+    <!-- Create New Team -->
+    <div class="divider">أو أنشئ فريق جديد</div>
+    <div class="card" style="background:var(--card2); padding:22px;">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>اسم الفريق <span class="req">*</span></label>
+          <input type="text" id="newTeamName" placeholder="مثال: Code Warriors" />
+        </div>
+        <div class="form-group">
+          <label>كلمة السر <span class="req">*</span></label>
+          <div class="password-group">
+            <input type="password" id="newTeamPassword" placeholder="اختار كلمة سر قوية" />
+            <button class="toggle-password" onclick="togglePass('newTeamPassword',this)" type="button">👁</button>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-success" style="margin-top:14px;" onclick="createTeam()">
+        🚀 أنشئ الفريق
+      </button>
+    </div>
+
+    <div style="margin-top:20px;">
+      <button class="btn btn-secondary btn-sm" onclick="goBack(1)">← رجوع</button>
+    </div>
+  </div>
+
+  <!-- ─── Step 3: Registration Form ─── -->
+  <div id="stepForm" class="card" style="display:none;">
+    <div class="card-header">
+      <div class="icon">📋</div>
+      <div>
+        <h2>بيانات التسجيل</h2>
+        <p id="formTeamLabel">اكتب بياناتك كاملة بالصح</p>
+      </div>
+    </div>
+
+    <div id="formAlerts"></div>
+
+    <form id="registrationForm" onsubmit="submitRegistration(event)">
+      <div class="form-grid">
+
+        <div class="form-group full">
+          <label>الاسم الكامل <span class="req">*</span></label>
+          <input type="text" id="fullName" placeholder="الاسم رباعي" required />
+        </div>
+
+        <div class="form-group">
+          <label>تاريخ الميلاد <span class="req">*</span></label>
+          <input type="date" id="dob" required />
+        </div>
+
+        <div class="form-group">
+          <label>تاريخ الالتحاق بالكلية <span class="req">*</span></label>
+          <input type="date" id="enrollmentDate" required />
+        </div>
+
+        <div class="form-group">
+          <label>رقم الكارنيه (Student ID) <span class="req">*</span></label>
+          <input type="text" id="studentId" placeholder="مثال: 20210001" required />
+        </div>
+
+        <div class="form-group">
+          <label>رقم الهاتف <span class="req">*</span></label>
+          <input type="tel" id="phone" placeholder="01XXXXXXXXX" required />
+        </div>
+
+        <div class="form-group full">
+          <label>البريد الإلكتروني ICPC <span class="req">*</span></label>
+          <input type="email" id="icpcEmail" placeholder="example@icpc.global" required />
+          <p class="input-hint">
+            🔗 ليك حساب على ICPC؟
+            <a href="https://icpc.global/regionals/finder/ECPC" target="_blank" rel="noopener">
+              اضغط هنا لتعرف كيف تعمل حساب ICPC
+            </a>
+          </p>
+        </div>
+
+        <div class="form-group full">
+          <label>الرقم القومي <span class="req">*</span></label>
+          <input type="text" id="nationalId" placeholder="14 رقم" maxlength="14" required />
+        </div>
+
+      </div>
+
+      <div style="display:flex; gap:12px; margin-top:28px; flex-wrap:wrap;">
+        <button type="submit" class="btn btn-primary" id="submitBtn">
+          ✅ إرسال التسجيل
+        </button>
+        <button type="button" class="btn btn-secondary" onclick="goBack(2)">
+          ← رجوع
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- ─── Success Screen ─── -->
+  <div id="stepSuccess" style="display:none;">
+    <div class="success-wrap">
+      <div class="success-icon">🎉</div>
+      <h2>تم التسجيل بنجاح!</h2>
+      <p id="successMsg">تم حفظ بياناتك. بالتوفيق في المسابقة!</p>
+      <button class="btn btn-primary" onclick="resetAll()">
+        🔄 تسجيل شخص آخر
+      </button>
+    </div>
+  </div>
+
+</div><!-- end page-container -->
+
+<!-- ══════════════════ SCRIPTS ══════════════════ -->
+<script type="module">
+  // ── Firebase Imports ──
+  import { initializeApp }            from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import {
+    getFirestore, collection, addDoc, getDocs,
+    doc, updateDoc, increment, query, where, getDoc
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  // ── Init ──
+  const firebaseConfig = {
+    apiKey: "AIzaSyCCF5WQXu7c17SalqemvGGsywRpA6Cyog8",
+    authDomain: "ecpc-967a8.firebaseapp.com",
+    projectId: "ecpc-967a8",
+    storageBucket: "ecpc-967a8.firebasestorage.app",
+    messagingSenderId: "232739819994",
+    appId: "1:232739819994:web:6db066b75c14fd8efbb0e3"
+  };
+  const app = initializeApp(firebaseConfig);
+  const db  = getFirestore(app);
+
+  // ── State ──
+  let hasTeam      = null;
+  let selectedTeam = null;  // { id, name, members_count }
+  let allTeams     = [];
+
+  // ── Expose helpers to global scope ──
+  window.selectHasTeam  = selectHasTeam;
+  window.joinTeam       = joinTeam;
+  window.createTeam     = createTeam;
+  window.submitRegistration = submitRegistration;
+  window.goBack         = goBack;
+  window.togglePass     = togglePass;
+  window.resetAll       = resetAll;
+  window.selectTeamCard = selectTeamCard;
+
+  // ════════════════════════════════════════
+  //  STEP 1 — Has team?
+  // ════════════════════════════════════════
+  function selectHasTeam(val) {
+    hasTeam = val;
+    setStep(val ? 'team' : 'form');
+    if (!val) {
+      selectedTeam = null;
+      document.getElementById('formTeamLabel').textContent = 'ستُسجَّل بدون فريق';
+    }
+    updateStepIndicator(val ? 2 : 3);
+    if (val) loadTeams();
+  }
+
+  // ════════════════════════════════════════
+  //  Load Teams from Firestore
+  // ════════════════════════════════════════
+  async function loadTeams() {
+    const loadingEl = document.getElementById('teamsLoading');
+    const listEl    = document.getElementById('teamsList');
+    const noTeamsEl = document.getElementById('noTeamsMsg');
+
+    loadingEl.style.display = 'flex';
+    listEl.style.display    = 'none';
+    noTeamsEl.style.display = 'none';
+
+    try {
+      const snap = await getDocs(collection(db, 'teams'));
+      allTeams = [];
+      snap.forEach(d => allTeams.push({ id: d.id, ...d.data() }));
+
+      loadingEl.style.display = 'none';
+
+      if (allTeams.length === 0) {
+        noTeamsEl.style.display = 'block';
+        return;
+      }
+
+      listEl.innerHTML = '';
+      allTeams.forEach(team => {
+        const full  = team.members_count >= 3;
+        const card  = document.createElement('div');
+        card.className = `team-card${full ? ' full' : ''}`;
+        card.id = `teamCard_${team.id}`;
+        card.innerHTML = `
+          <div class="team-card-name">🏅 ${escapeHtml(team.name)}</div>
+          <div class="team-members-bar">
+            ${[0,1,2].map(i => `<div class="member-dot${i < team.members_count ? ' filled' : ''}"></div>`).join('')}
+            <span style="font-size:0.8rem; color:var(--text-muted); margin-right:6px;">
+              ${team.members_count}/3
+            </span>
+          </div>
+          <div class="team-status${full ? ' full-status' : ''}">
+            ${full ? '🔒 الفريق ممتلئ' : `${3 - team.members_count} مقعد متاح`}
+          </div>`;
+        if (!full) {
+          // استخدام data attribute بدل closure عشان يشتغل صح مع module scope
+          card.setAttribute('data-team-id', team.id);
+          card.addEventListener('click', () => {
+            const t = allTeams.find(x => x.id === team.id);
+            if (t) selectTeamCard(t);
+          });
+        }
+        listEl.appendChild(card);
+      });
+
+      listEl.style.display = 'grid';
+    } catch (err) {
+      loadingEl.style.display = 'none';
+      showToast('خطأ في تحميل الفرق: ' + err.message, 'error');
+    }
+  }
+
+  // ── Select a team card ──
+  function selectTeamCard(team) {
+    selectedTeam = team;
+    // إزالة التحديد من كل الكروت
+    document.querySelectorAll('.team-card').forEach(c => c.classList.remove('selected'));
+    // تحديد الكارت المختار
+    const card = document.getElementById(`teamCard_${team.id}`);
+    if (card) card.classList.add('selected');
+    // إظهار قسم الانضمام
+    document.getElementById('selectedTeamName').textContent = team.name;
+    document.getElementById('joinTeamSection').style.display = 'block';
+    // scroll للباسورد
+    setTimeout(() => {
+      document.getElementById('joinPassword').focus();
+      document.getElementById('joinTeamSection').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+  }
+  window.selectTeamCard = selectTeamCard;
+
+  // ════════════════════════════════════════
+  //  Join Existing Team
+  // ════════════════════════════════════════
+  async function joinTeam() {
+    if (!selectedTeam) { showToast('اختار فريق الأول', 'error'); return; }
+    const pwd = document.getElementById('joinPassword').value.trim();
+    if (!pwd) { showToast('أدخل كلمة سر الفريق', 'error'); return; }
+
+    // Re-fetch team to get latest data
+    try {
+      const teamSnap = await getDoc(doc(db, 'teams', selectedTeam.id));
+      if (!teamSnap.exists()) { showToast('الفريق مش موجود!', 'error'); return; }
+      const teamData = teamSnap.data();
+
+      if (teamData.members_count >= 3) {
+        showToast('الفريق ممتلئ (3/3)', 'error');
+        return;
+      }
+      if (teamData.password !== pwd) {
+        showToast('كلمة السر غلط!', 'error');
+        return;
+      }
+
+      selectedTeam = { id: selectedTeam.id, ...teamData };
+      document.getElementById('formTeamLabel').textContent = `فريق: ${teamData.name}`;
+      setStep('form');
+      updateStepIndicator(3);
+      showToast(`تم الانضمام لفريق "${teamData.name}" ✅`, 'success');
+    } catch (err) {
+      showToast('خطأ: ' + err.message, 'error');
+    }
+  }
+
+  // ════════════════════════════════════════
+  //  Create New Team
+  // ════════════════════════════════════════
+  async function createTeam() {
+    const name = document.getElementById('newTeamName').value.trim();
+    const pwd  = document.getElementById('newTeamPassword').value.trim();
+
+    if (!name) { showToast('اكتب اسم الفريق', 'error'); return; }
+    if (!pwd)  { showToast('اكتب كلمة سر للفريق', 'error'); return; }
+    if (name.length < 3) { showToast('اسم الفريق على الأقل 3 حروف', 'error'); return; }
+
+    // Check duplicate name
+    const q = query(collection(db, 'teams'), where('name', '==', name));
+    const existing = await getDocs(q);
+    if (!existing.empty) { showToast('اسم الفريق ده موجود بالفعل', 'error'); return; }
+
+    try {
+      const docRef = await addDoc(collection(db, 'teams'), {
+        name,
+        password: pwd,
+        members_count: 0,
+        created_at: new Date().toISOString()
+      });
+      selectedTeam = { id: docRef.id, name, password: pwd, members_count: 0 };
+      document.getElementById('formTeamLabel').textContent = `فريق: ${name} (جديد 🆕)`;
+      setStep('form');
+      updateStepIndicator(3);
+      showToast(`تم إنشاء فريق "${name}" بنجاح 🎉`, 'success');
+    } catch (err) {
+      showToast('خطأ في إنشاء الفريق: ' + err.message, 'error');
+    }
+  }
+
+  // ════════════════════════════════════════
+  //  Submit Registration Form
+  // ════════════════════════════════════════
+  async function submitRegistration(e) {
+    e.preventDefault();
+    const alertsEl = document.getElementById('formAlerts');
+    alertsEl.innerHTML = '';
+
+    // ── Gather values ──
+    const fullName      = document.getElementById('fullName').value.trim();
+    const dob           = document.getElementById('dob').value;
+    const enrollDate    = document.getElementById('enrollmentDate').value;
+    const studentId     = document.getElementById('studentId').value.trim();
+    const phone         = document.getElementById('phone').value.trim();
+    const icpcEmail     = document.getElementById('icpcEmail').value.trim().toLowerCase();
+    const nationalId    = document.getElementById('nationalId').value.trim();
+
+    // ── Validation ──
+    const errors = [];
+    if (!fullName || fullName.split(' ').length < 2)
+      errors.push('الاسم يجب أن يكون على الأقل اسمين');
+    if (!dob) errors.push('أدخل تاريخ الميلاد');
+    if (!enrollDate) errors.push('أدخل تاريخ الالتحاق');
+    if (!studentId) errors.push('أدخل رقم الكارنيه');
+    if (!/^01[0-9]{9}$/.test(phone)) errors.push('رقم الهاتف غير صحيح (يبدأ بـ 01)');
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(icpcEmail)) errors.push('البريد الإلكتروني غير صحيح');
+    if (!/^\d{14}$/.test(nationalId)) errors.push('الرقم القومي يجب أن يكون 14 رقم');
+
+    if (errors.length > 0) {
+      alertsEl.innerHTML = errors.map(e =>
+        `<div class="alert alert-error">⚠️ ${e}</div>`).join('');
+      return;
+    }
+
+    // ── Check duplicate email / national ID ──
+    const emailQ  = query(collection(db, 'users'), where('icpc_email', '==', icpcEmail));
+    const emailSnap = await getDocs(emailQ);
+    if (!emailSnap.empty) {
+      alertsEl.innerHTML = `<div class="alert alert-error">⚠️ البريد الإلكتروني ده مسجّل بالفعل</div>`;
+      return;
+    }
+    const natQ  = query(collection(db, 'users'), where('national_id', '==', nationalId));
+    const natSnap = await getDocs(natQ);
+    if (!natSnap.empty) {
+      alertsEl.innerHTML = `<div class="alert alert-error">⚠️ الرقم القومي ده مسجّل بالفعل</div>`;
+      return;
+    }
+
+    // ── Disable button ──
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner"></div> جاري الإرسال...';
+
+    try {
+      // Save user
+      const userData = {
+        full_name:       fullName,
+        dob:             dob,
+        enrollment_date: enrollDate,
+        student_id:      studentId,
+        icpc_email:      icpcEmail,
+        phone:           phone,
+        national_id:     nationalId,
+        team_id:         selectedTeam ? selectedTeam.id : null,
+        registered_at:   new Date().toISOString()
+      };
+
+      await addDoc(collection(db, 'users'), userData);
+
+      // Increment team members_count if joined a team
+      if (selectedTeam) {
+        await updateDoc(doc(db, 'teams', selectedTeam.id), {
+          members_count: increment(1)
+        });
+      }
+
+      // Show success
+      setStep('success');
+      document.getElementById('successMsg').textContent =
+        selectedTeam
+          ? `تم تسجيلك في فريق "${selectedTeam.name}" بنجاح! بالتوفيق في ECPC 🏆`
+          : 'تم حفظ بياناتك. بالتوفيق في ECPC 🏆';
+      showToast('تم التسجيل بنجاح! 🎉', 'success');
+
+    } catch (err) {
+      alertsEl.innerHTML = `<div class="alert alert-error">❌ خطأ: ${err.message}</div>`;
+      btn.disabled = false;
+      btn.innerHTML = '✅ إرسال التسجيل';
+    }
+  }
+
+  // ════════════════════════════════════════
+  //  Navigation helpers
+  // ════════════════════════════════════════
+  function setStep(step) {
+    document.getElementById('stepHasTeam').style.display = 'none';
+    document.getElementById('stepTeam').style.display    = 'none';
+    document.getElementById('stepForm').style.display    = 'none';
+    document.getElementById('stepSuccess').style.display = 'none';
+
+    if (step === 'hasTeam') document.getElementById('stepHasTeam').style.display = 'block';
+    if (step === 'team')    document.getElementById('stepTeam').style.display    = 'block';
+    if (step === 'form')    document.getElementById('stepForm').style.display    = 'block';
+    if (step === 'success') document.getElementById('stepSuccess').style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  window.goBack = function(fromStep) {
+    if (fromStep === 1) { setStep('hasTeam'); updateStepIndicator(1); }
+    if (fromStep === 2) {
+      if (hasTeam) { setStep('team'); updateStepIndicator(2); }
+      else         { setStep('hasTeam'); updateStepIndicator(1); }
+    }
+  };
+
+  window.resetAll = function() {
+    hasTeam = null; selectedTeam = null;
+    document.getElementById('registrationForm').reset();
+    document.getElementById('formAlerts').innerHTML = '';
+    document.getElementById('joinPassword').value = '';
+    document.getElementById('newTeamName').value = '';
+    document.getElementById('newTeamPassword').value = '';
+    document.getElementById('joinTeamSection').style.display = 'none';
+    setStep('hasTeam');
+    updateStepIndicator(1);
+  };
+
+  function updateStepIndicator(active) {
+    [1,2,3].forEach(n => {
+      const el = document.getElementById(`step${n}Indicator`);
+      if (!el) return;
+      el.classList.remove('active','done');
+      if (n < active)  el.classList.add('done');
+      if (n === active) el.classList.add('active');
+    });
+    const l1 = document.getElementById('line1');
+    const l2 = document.getElementById('line2');
+    if (l1) l1.classList.toggle('done', active > 1);
+    if (l2) l2.classList.toggle('done', active > 2);
+  }
+
+  // ── Toggle password visibility ──
+  window.togglePass = function(id, btn) {
+    const inp = document.getElementById(id);
+    if (inp.type === 'password') { inp.type = 'text'; btn.textContent = '🙈'; }
+    else                         { inp.type = 'password'; btn.textContent = '👁'; }
+  };
+
+  // ════════════════════════════════════════
+  //  Toast notifications
+  // ════════════════════════════════════════
+  function showToast(msg, type = 'info') {
+    const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `<span>${icons[type]}</span> ${msg}`;
+    container.appendChild(toast);
+    setTimeout(() => {
+      toast.style.animation = 'toastOut 0.35s ease forwards';
+      setTimeout(() => toast.remove(), 350);
+    }, 3500);
+  }
+  window.showToast = showToast;
+
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+</script>
+
+</body>
+</html>
