@@ -9,7 +9,6 @@
 </head>
 <body>
 
-<!-- ══════════════════ NAVBAR ══════════════════ -->
 <nav class="navbar">
   <a class="navbar-brand" href="index.html">
     <img src="assets/logo.png" alt="HNU ICPC Community Logo" class="navbar-logo" />
@@ -27,10 +26,8 @@
   </div>
 </nav>
 
-<!-- ══════════════════ TOAST ══════════════════ -->
 <div class="toast-container" id="toastContainer"></div>
 
-<!-- ══════════════════ LOGIN SCREEN ══════════════════ -->
 <div id="loginScreen" class="login-wrap">
   <div class="login-card">
     <img src="assets/logo.png" alt="Logo" class="login-logo" />
@@ -57,11 +54,9 @@
   </div>
 </div>
 
-<!-- ══════════════════ ADMIN DASHBOARD ══════════════════ -->
 <div id="adminDashboard" style="display:none;">
 <div class="page-container wide" style="padding-top:30px;">
 
-  <!-- Stats -->
   <div class="stats-grid" id="statsGrid">
     <div class="stat-card">
       <div class="stat-icon blue">👥</div>
@@ -99,13 +94,11 @@
     </div>
   </div>
 
-  <!-- Tabs -->
   <div class="admin-tabs">
     <button class="admin-tab active" onclick="switchTab('users')">👥 المتسابقون</button>
     <button class="admin-tab" onclick="switchTab('teams')">🏅 الفرق</button>
   </div>
 
-  <!-- ─── Users Tab ─── -->
   <div id="tabUsers">
     <div class="search-bar">
       <div class="search-input-wrap">
@@ -146,7 +139,6 @@
     </div>
   </div>
 
-  <!-- ─── Teams Tab ─── -->
   <div id="tabTeams" style="display:none;">
     <div class="search-bar">
       <div class="search-input-wrap">
@@ -180,12 +172,8 @@
     </div>
   </div>
 
-</div><!-- end page-container -->
-</div><!-- end adminDashboard -->
-
-<!-- ══════════════════ MODALS ══════════════════ -->
-
-<!-- Edit User Modal -->
+</div>
+</div>
 <div id="editUserModal" class="modal-overlay" style="display:none;" onclick="closeModal('editUserModal',event)">
   <div class="modal">
     <button class="modal-close" onclick="closeModalById('editUserModal')">✕</button>
@@ -234,7 +222,6 @@
   </div>
 </div>
 
-<!-- Create Team Modal -->
 <div id="createTeamModal" class="modal-overlay" style="display:none;" onclick="closeModal('createTeamModal',event)">
   <div class="modal">
     <button class="modal-close" onclick="closeModalById('createTeamModal')">✕</button>
@@ -259,7 +246,6 @@
   </div>
 </div>
 
-<!-- Team Members Modal -->
 <div id="teamMembersModal" class="modal-overlay" style="display:none;" onclick="closeModal('teamMembersModal',event)">
   <div class="modal" style="max-width:680px;">
     <button class="modal-close" onclick="closeModalById('teamMembersModal')">✕</button>
@@ -268,8 +254,7 @@
   </div>
 </div>
 
-<!-- Confirm Delete Modal -->
-<div id="confirmModal" class="modal-overlay" style="display:none;" onclick="closeModal('confirmModal',event)">
+=<div id="confirmModal" class="modal-overlay" style="display:none;" onclick="closeModal('confirmModal',event)">
   <div class="modal" style="max-width:420px; text-align:center;">
     <button class="modal-close" onclick="closeModalById('confirmModal')">✕</button>
     <div style="font-size:3rem;margin-bottom:16px;">⚠️</div>
@@ -283,7 +268,6 @@
 </div>
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<!-- ══════════════════ SCRIPTS ══════════════════ -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import {
@@ -324,7 +308,6 @@ const auth = getAuth(app);
     else                         { inp.type = 'password'; btn.textContent = '👀'; }
   };
 
-  // Auto-login if session exists
  window.adminLogin = async function() {
   const email = document.getElementById('adminEmail').value;
   const password = document.getElementById('adminPassword').value;
@@ -352,11 +335,8 @@ const auth = getAuth(app);
     alertEl.innerHTML = `<div class="alert alert-error">❌ pass is wrong</div>`;
   }
 };
-  // ════════════════════════════════════════
-  //  INIT DASHBOARD — Real-time listeners
-  // ════════════════════════════════════════
+
   function initDashboard() {
-    // Teams listener
     let usersLoaded = false;
 let teamsLoaded = false;
 
@@ -387,7 +367,6 @@ usersUnsub = onSnapshot(collection(db, 'users'), snap => {
   }
 });
 
-    // Users listener
     usersUnsub = onSnapshot(collection(db, 'users'), snap => {
       allUsers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       renderUsers();
@@ -396,9 +375,6 @@ usersUnsub = onSnapshot(collection(db, 'users'), snap => {
     });
   }
 
-  // ════════════════════════════════════════
-  //  STATS
-  // ════════════════════════════════════════
   function updateStats() {
     document.getElementById('statUsers').textContent    = allUsers.length;
     document.getElementById('statTeams').textContent    = allTeams.length;
@@ -432,9 +408,7 @@ function renderChart() {
     }
   });
 }
-  // ════════════════════════════════════════
-  //  TABS
-  // ════════════════════════════════════════
+
   window.switchTab = function(tab) {
     document.getElementById('tabUsers').style.display  = tab === 'users'  ? 'block' : 'none';
     document.getElementById('tabTeams').style.display  = tab === 'teams'  ? 'block' : 'none';
@@ -443,9 +417,6 @@ function renderChart() {
     });
   };
 
-  // ════════════════════════════════════════
-  //  RENDER USERS TABLE
-  // ════════════════════════════════════════
   function renderUsers(data = allUsers) {
     const tbody = document.getElementById('usersTableBody');
     if (!data.length) {
@@ -481,9 +452,6 @@ function renderChart() {
     }).join('');
   }
 
-  // ════════════════════════════════════════
-  //  RENDER TEAMS TABLE
-  // ════════════════════════════════════════
   function renderTeams(data = allTeams) {
     const tbody = document.getElementById('teamsTableBody');
     if (!data.length) {
@@ -529,9 +497,6 @@ tbody.innerHTML = data.map((t, i) => {
     }).join('');
   }
 
-  // ════════════════════════════════════════
-  //  FILTER
-  // ════════════════════════════════════════
   window.filterUsers = function() {
     const q  = document.getElementById('userSearch').value.toLowerCase();
     const tf = document.getElementById('teamFilter').value;
@@ -576,9 +541,6 @@ tbody.innerHTML = data.map((t, i) => {
     });
   }
 
-  // ════════════════════════════════════════
-  //  EDIT USER
-  // ════════════════════════════════════════
   window.openEditUser = function(userId) {
     const u = allUsers.find(x => x.id === userId);
     if (!u) return;
@@ -615,14 +577,11 @@ tbody.innerHTML = data.map((t, i) => {
     try {
       const batch = writeBatch(db);
 
-      // Update user
       batch.update(doc(db, 'users', userId), updatedData);
 
-      // Handle team member_count changes
       if (oldTeamId !== newTeamId) {
         if (oldTeamId)  batch.update(doc(db,'teams',oldTeamId), { members_count: increment(-1) });
         if (newTeamId) {
-          // Check capacity
           const newTeam = allTeams.find(t => t.id === newTeamId);
           const count = allUsers.filter(u => u.team_id === newTeamId).length;
         if (count >= 3) {
@@ -641,9 +600,7 @@ tbody.innerHTML = data.map((t, i) => {
     }
   };
 
-  // ════════════════════════════════════════
-  //  DELETE USER
-  // ════════════════════════════════════════
+
   window.confirmDeleteUser = function(userId, name) {
     document.getElementById('confirmTitle').textContent = 'حذف متسابق';
     document.getElementById('confirmMsg').textContent   = `هل أنت متأكد من حذف "${name}"؟ هذا الإجراء لا يمكن التراجع عنه.`;
@@ -667,9 +624,7 @@ tbody.innerHTML = data.map((t, i) => {
     }
   }
 
-  // ════════════════════════════════════════
-  //  REMOVE FROM TEAM
-  // ════════════════════════════════════════
+
   window.removeFromTeam = async function(userId) {
     const user = allUsers.find(u => u.id === userId);
     if (!user || !user.team_id) return;
@@ -684,9 +639,7 @@ tbody.innerHTML = data.map((t, i) => {
     }
   };
 
-  // ════════════════════════════════════════
-  //  TEAM MEMBERS MODAL
-  // ════════════════════════════════════════
+
   window.openTeamMembers = function(teamId) {
     const team    = allTeams.find(t => t.id === teamId);
     const members = allUsers.filter(u => u.team_id === teamId);
@@ -750,9 +703,6 @@ if (count >= 3) { showToast('الفريق ممتلئ!', 'error'); return; }
     }
   };
 
-  // ════════════════════════════════════════
-  //  CREATE TEAM (Admin)
-  // ════════════════════════════════════════
   window.openCreateTeamModal = function() {
     document.getElementById('modalTeamName').value     = '';
     document.getElementById('modalTeamPassword').value = '';
@@ -781,9 +731,7 @@ if (count >= 3) { showToast('الفريق ممتلئ!', 'error'); return; }
     }
   };
 
-  // ════════════════════════════════════════
-  //  DELETE TEAM
-  // ════════════════════════════════════════
+
   window.confirmDeleteTeam = function(teamId, name) {
     document.getElementById('confirmTitle').textContent = 'حذف فريق';
     document.getElementById('confirmMsg').textContent   =
@@ -795,7 +743,6 @@ if (count >= 3) { showToast('الفريق ممتلئ!', 'error'); return; }
   async function deleteTeam(teamId) {
     try {
       const batch = writeBatch(db);
-      // Unlink all members
       allUsers.filter(u => u.team_id === teamId).forEach(u => {
         batch.update(doc(db,'users',u.id), { team_id: null });
       });
@@ -808,9 +755,7 @@ if (count >= 3) { showToast('الفريق ممتلئ!', 'error'); return; }
     }
   }
 
-  // ════════════════════════════════════════
-  //  EXPORT XML
-  // ════════════════════════════════════════
+
 window.exportExcel = function() {
   const data = [];
 
@@ -831,7 +776,6 @@ window.exportExcel = function() {
 
   const ws = XLSX.utils.json_to_sheet(data);
 
-  // 📏 عرض الأعمدة
   ws['!cols'] = [
     { wch: 25 },
     { wch: 30 },
@@ -843,7 +787,6 @@ window.exportExcel = function() {
     { wch: 20 }
   ];
 
-  // 🎨 تنسيق الهيدر
   const range = XLSX.utils.decode_range(ws['!ref']);
   for (let C = range.s.c; C <= range.e.c; ++C) {
     const cell = ws[XLSX.utils.encode_cell({ r: 0, c: C })];
@@ -856,7 +799,6 @@ window.exportExcel = function() {
     }
   }
 
-  // 🎨 تنسيق الصفوف (zebra)
   for (let R = 1; R <= range.e.r; ++R) {
     for (let C = range.s.c; C <= range.e.c; ++C) {
       const cell = ws[XLSX.utils.encode_cell({ r: R, c: C })];
@@ -882,7 +824,6 @@ window.exportExcel = function() {
 window.exportTeamsExcel = function() {
   const data = [];
 
-  // نحدد أقصى عدد أعضاء في فريق واحد عشان نبني الأعمدة
   let maxMembers = 0;
 
   const teamsMembersMap = allTeams.map(t => {
@@ -900,7 +841,6 @@ window.exportTeamsExcel = function() {
     };
   });
 
-  // بناء الأعمدة الديناميكية
   teamsMembersMap.forEach(item => {
     const row = {
       "Team Name": item.team.name || '',
@@ -916,10 +856,9 @@ window.exportTeamsExcel = function() {
 
   const ws = XLSX.utils.json_to_sheet(data);
 
-  // 📏 عرض الأعمدة
   const cols = [
-    { wch: 25 }, // Team Name
-    { wch: 15 }  // Members Count
+    { wch: 25 }, 
+    { wch: 15 } 
   ];
 
   for (let i = 0; i < maxMembers; i++) {
@@ -928,7 +867,6 @@ window.exportTeamsExcel = function() {
 
   ws['!cols'] = cols;
 
-  // 🎨 تنسيق الهيدر
   const range = XLSX.utils.decode_range(ws['!ref']);
   for (let C = range.s.c; C <= range.e.c; ++C) {
     const cell = ws[XLSX.utils.encode_cell({ r: 0, c: C })];
@@ -941,7 +879,6 @@ window.exportTeamsExcel = function() {
     }
   }
 
-  // 🎨 zebra rows
   for (let R = 1; R <= range.e.r; ++R) {
     for (let C = range.s.c; C <= range.e.c; ++C) {
       const cell = ws[XLSX.utils.encode_cell({ r: R, c: C })];
@@ -964,9 +901,6 @@ window.exportTeamsExcel = function() {
 
   showToast('Teams Excel exported 📊', 'success');
 };
-  // ════════════════════════════════════════
-  //  MODAL HELPERS
-  // ════════════════════════════════════════
   window.closeModalById = function(id) {
     document.getElementById(id).style.display = 'none';
   };
@@ -974,9 +908,6 @@ window.exportTeamsExcel = function() {
     if (e.target.id === id) document.getElementById(id).style.display = 'none';
   };
 
-  // ════════════════════════════════════════
-  //  TOAST
-  // ════════════════════════════════════════
   function showToast(msg, type = 'info') {
     const icons = { success: '✅', error: '❌', info: 'ℹ️' };
     const container = document.getElementById('toastContainer');
@@ -991,7 +922,6 @@ window.exportTeamsExcel = function() {
   }
   window.showToast = showToast;
 
-  // ── Escape helpers ──
   function escHtml(str) {
     return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;')
                       .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
