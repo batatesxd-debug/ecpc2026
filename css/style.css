@@ -4,7 +4,6 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Tajawal:wght@300;400;500;700&display=swap');
 
-/* ── المتغيرات ── */
 :root {
   --primary:        #1a3a5c;
   --primary-light:  #1e4976;
@@ -30,7 +29,6 @@
   --transition:     all 0.25s ease;
 }
 
-/* ── Reset & Base ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html { scroll-behavior: smooth; }
@@ -47,7 +45,6 @@ body {
     radial-gradient(ellipse at 80% 80%, rgba(232,160,32,0.06) 0%, transparent 60%);
 }
 
-/* ── Header / Navbar ── */
 .navbar {
   background: linear-gradient(135deg, var(--primary) 0%, var(--bg2) 100%);
   border-bottom: 2px solid var(--accent);
@@ -67,7 +64,77 @@ body {
   gap: 16px;
   text-decoration: none;
 }
+.member-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ccc;
+  transition: 0.3s;
+}
 
+.member-dot.filled {
+  background: #4caf50;
+}
+
+.member-dot.full {
+  background: #f44336;
+  transform: scale(1.2);
+}
+.member-dot.filled {
+  animation: pop 0.3s ease;
+}
+
+@keyframes pop {
+  0% { transform: scale(0.5); }
+  100% { transform: scale(1); }
+}
+.progress-bar {
+  width: 80px;
+  height: 8px;
+  background: #eee;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4caf50, #8bc34a);
+  transition: 0.4s;
+}
+
+.progress-text {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+#statsChart {
+  max-width: 300px;
+  margin: auto;
+}
+.chart-card {
+  margin-top: 30px;
+  padding: 20px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+.chart-title {
+  margin-bottom: 15px;
+  font-size: 1.1rem;
+  color: var(--text);
+  text-align: center;
+}
+
+.chart-wrapper {
+  max-width: 320px;
+  margin: auto;
+}
+
+#statsChart {
+  width: 100% !important;
+  height: auto !important;
+}
 .navbar-logo {
   width: 56px;
   height: 56px;
@@ -121,7 +188,6 @@ body {
   background: rgba(232,160,32,0.08);
 }
 
-/* ── Page Container ── */
 .page-container {
   max-width: 980px;
   margin: 0 auto;
@@ -132,7 +198,6 @@ body {
   max-width: 1300px;
 }
 
-/* ── Hero Section ── */
 .hero {
   text-align: center;
   padding: 48px 24px 32px;
@@ -169,7 +234,6 @@ body {
   margin: 0 auto;
 }
 
-/* ── Cards ── */
 .card {
   background: var(--card);
   border: 1px solid var(--border);
@@ -214,7 +278,6 @@ body {
   margin-top: 2px;
 }
 
-/* ── Question Step ── */
 .question-card {
   text-align: center;
   padding: 56px 32px;
@@ -276,7 +339,6 @@ body {
   box-shadow: 0 8px 24px rgba(232,160,32,0.2);
 }
 
-/* ── Form Elements ── */
 .form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -351,7 +413,6 @@ body {
 }
 .input-hint a:hover { text-decoration: underline; }
 
-/* ── Buttons ── */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -422,7 +483,6 @@ body {
   transform: none !important;
 }
 
-/* ── Teams Grid ── */
 .teams-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -491,7 +551,6 @@ body {
 }
 .team-status.full-status { color: var(--danger); }
 
-/* ── Step Indicator ── */
 .steps-indicator {
   display: flex;
   align-items: center;
@@ -552,7 +611,6 @@ body {
 }
 .step-line.done { background: var(--success); }
 
-/* ── Alerts / Toast ── */
 .alert {
   padding: 14px 18px;
   border-radius: var(--radius-sm);
@@ -613,7 +671,6 @@ body {
   to   { opacity: 0; transform: translateX(-30px); }
 }
 
-/* ── Modal ── */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -674,7 +731,6 @@ body {
   padding-left: 28px;
 }
 
-/* ── Admin Table ── */
 .table-wrapper {
   overflow-x: auto;
   border-radius: var(--radius);
@@ -725,7 +781,6 @@ tbody td {
   justify-content: flex-end;
 }
 
-/* ── Admin Tabs ── */
 .admin-tabs {
   display: flex;
   gap: 0;
@@ -755,7 +810,6 @@ tbody td {
 .admin-tab:hover { color: var(--text); }
 .admin-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 
-/* ── Stats Cards ── */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -796,7 +850,6 @@ tbody td {
 .stat-value { font-size: 1.8rem; font-weight: 900; color: var(--text); line-height: 1; }
 .stat-label { font-size: 0.78rem; color: var(--text-muted); font-weight: 600; margin-top: 4px; }
 
-/* ── Search Bar ── */
 .search-bar {
   display: flex;
   gap: 12px;
@@ -838,7 +891,6 @@ tbody td {
   box-shadow: 0 0 0 3px rgba(232,160,32,0.12);
 }
 
-/* ── Badge ── */
 .badge {
   display: inline-block;
   padding: 3px 10px;
@@ -852,7 +904,6 @@ tbody td {
 .badge-red    { background: rgba(229,62,62,0.15); color: #fc8181; border: 1px solid rgba(229,62,62,0.3); }
 .badge-blue   { background: rgba(66,153,225,0.15); color: #90cdf4; border: 1px solid rgba(66,153,225,0.3); }
 
-/* ── Password Toggle ── */
 .password-group { position: relative; }
 .password-group input { padding-left: 44px; }
 .toggle-password {
@@ -870,7 +921,6 @@ tbody td {
 }
 .toggle-password:hover { color: var(--accent); }
 
-/* ── Loading Spinner ── */
 .spinner {
   width: 20px;
   height: 20px;
@@ -882,7 +932,6 @@ tbody td {
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ── Empty State ── */
 .empty-state {
   text-align: center;
   padding: 60px 24px;
@@ -892,7 +941,6 @@ tbody td {
 .empty-state h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; color: var(--text); }
 .empty-state p { font-size: 0.88rem; }
 
-/* ── Section Title ── */
 .section-title {
   font-size: 1.1rem;
   font-weight: 800;
@@ -910,7 +958,6 @@ tbody td {
   background: var(--border);
 }
 
-/* ── Admin Login ── */
 .login-wrap {
   min-height: 100vh;
   display: flex;
@@ -945,7 +992,6 @@ tbody td {
 .login-card h2 { font-size: 1.6rem; font-weight: 900; margin-bottom: 6px; }
 .login-card p { color: var(--text-muted); font-size: 0.88rem; margin-bottom: 32px; }
 
-/* ── Success Page ── */
 .success-wrap {
   text-align: center;
   padding: 60px 24px;
@@ -964,7 +1010,6 @@ tbody td {
 .success-wrap h2 { font-size: 1.8rem; font-weight: 900; margin-bottom: 12px; }
 .success-wrap p { color: var(--text-muted); margin-bottom: 32px; }
 
-/* ── Divider ── */
 .divider {
   display: flex;
   align-items: center;
@@ -980,7 +1025,7 @@ tbody td {
   background: var(--border);
 }
 
-/* ── Responsive ── */
+
 @media (max-width: 768px) {
   .navbar { padding: 12px 18px; }
   .navbar-logo { width: 44px; height: 44px; }
