@@ -308,7 +308,7 @@ const auth = getAuth(app);
     else                         { inp.type = 'password'; btn.textContent = '👀'; }
   };
 
- window.adminLogin = async function() {
+window.adminLogin = async function() {
   const email = document.getElementById('adminEmail').value;
   const password = document.getElementById('adminPassword').value;
   const alertEl = document.getElementById('loginAlert');
@@ -318,14 +318,19 @@ const auth = getAuth(app);
 
     const tokenResult = await userCred.user.getIdTokenResult();
 
-    if (tokenResult.claims.admin) {
+    const isAdmin = tokenResult.claims.admin === true;
+    const role = tokenResult.claims.role || null;
+
+    if (isAdmin || role === "viewer") {
+
       sessionStorage.setItem('admin_auth', '1');
 
       document.getElementById('loginScreen').style.display = 'none';
       document.getElementById('adminDashboard').style.display = 'block';
       document.getElementById('logoutBtn').style.display = 'inline-flex';
 
-      initDashboard();
+      initDashboard(role);
+
     } else {
       alertEl.innerHTML = '<div class="alert alert-error">❌ ليس لديك صلاحية Admin</div>';
       await signOut(auth);
@@ -335,8 +340,33 @@ const auth = getAuth(app);
     alertEl.innerHTML = `<div class="alert alert-error">❌ pass is wrong</div>`;
   }
 };
+function applyPermissions(role) {
 
-  function initDashboard() {
+  const isViewer = role === "viewer";
+
+  if (isViewer) {
+
+    // إخفاء أزرار الحذف
+    document.querySelectorAll('.btn-danger').forEach(btn => btn.style.display = 'none');
+
+    // إخفاء أزرار التعديل
+    document.querySelectorAll('button').forEach(btn => {
+      if (btn.innerText.includes('✏️') || btn.innerText.includes('🗑️')) {
+        btn.style.display = 'none';
+      }
+    });
+
+    // إخفاء أزرار الإضافة
+    document.querySelectorAll('button').forEach(btn => {
+      if (btn.innerText.includes('فريق جديد') || btn.innerText.includes('➕')) {
+        btn.style.display = 'none';
+      }
+    });
+
+    showToast("🔒 وضع قراءة فقط", "info");
+  }
+}
+  function initDashboard(role) {
     let usersLoaded = false;
 let teamsLoaded = false;
 
@@ -351,6 +381,7 @@ teamsUnsub = onSnapshot(collection(db, 'teams'), snap => {
     renderChart();
     populateTeamFilter();
     populateEditTeamSelect();
+    applyPermissions(role);
   }
 });
 
@@ -364,6 +395,7 @@ usersUnsub = onSnapshot(collection(db, 'users'), snap => {
     updateStats();
     populateTeamFilter();
     populateEditTeamSelect();
+    applyPermissions(role);
   }
 });
 
@@ -596,7 +628,7 @@ tbody.innerHTML = data.map((t, i) => {
       closeModalById('editUserModal');
       showToast('تم تحديث البيانات بنجاح ✅', 'success');
     } catch (err) {
-      showToast('خطأ في التحديث: ' + err.message, 'error');
+      showToast('معندكش الصلاحيه لده');
     }
   };
 
