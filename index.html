@@ -9,13 +9,12 @@
 </head>
 <body>
 
-<!-- ══════════════════ NAVBAR ══════════════════ -->
 <nav class="navbar">
   <a class="navbar-brand" href="index.html">
     <img src="assets/logo.png" alt="HNU ICPC Community Logo" class="navbar-logo" />
     <div class="navbar-title">
       <span class="main-title">ECPC Registration</span>
-      <span class="sub-title">HNU ICPC Community</span>
+      <span class="sub-title">Developed by engineers Youssef Barakat & Nada Abdullah</span>
     </div>
   </a>
   <div class="navbar-links">
@@ -24,20 +23,16 @@
   </div>
 </nav>
 
-<!-- ══════════════════ TOAST ══════════════════ -->
 <div class="toast-container" id="toastContainer"></div>
 
-<!-- ══════════════════ MAIN ══════════════════ -->
 <div class="page-container" id="appRoot">
 
-  <!-- Hero -->
   <div class="hero">
     <div class="hero-badge">🏆 ECPC 2026</div>
     <h1>سجّل في المسابقة</h1>
     <p>سجّل بياناتك وانضم إلى فريقك للمشاركة في مسابقة ECPC لهذا العام</p>
   </div>
 
-  <!-- Steps Indicator -->
   <div class="steps-indicator" id="stepsIndicator">
     <div class="step-item active" id="step1Indicator">
       <div class="step-circle">١</div>
@@ -55,7 +50,6 @@
     </div>
   </div>
 
-  <!-- ─── Step 1: Has Team? ─── -->
   <div id="stepHasTeam" class="card question-card">
     <span class="q-icon">🤝</span>
     <h2>هل عندك فريق؟</h2>
@@ -72,7 +66,6 @@
     </div>
   </div>
 
-  <!-- ─── Step 2a: Team Selection ─── -->
   <div id="stepTeam" class="card" style="display:none;">
     <div class="card-header">
       <div class="icon">👥</div>
@@ -82,7 +75,6 @@
       </div>
     </div>
 
-    <!-- Available Teams -->
     <div class="section-title">⚡ الفرق المتاحة</div>
     <div id="teamsLoading" class="alert alert-info">
       <div class="spinner"></div> جاري تحميل الفرق...
@@ -94,7 +86,6 @@
       <p>أنشئ فريق جديد من الأسفل</p>
     </div>
 
-    <!-- Join Selected Team -->
     <div id="joinTeamSection" style="display:none;">
       <div class="divider">انضمام للفريق المختار</div>
       <div class="card" style="background:var(--card2); padding:22px;">
@@ -115,7 +106,6 @@
       </div>
     </div>
 
-    <!-- Create New Team -->
     <div class="divider">أو أنشئ فريق جديد</div>
     <div class="card" style="background:var(--card2); padding:22px;">
       <div class="form-grid">
@@ -141,7 +131,6 @@
     </div>
   </div>
 
-  <!-- ─── Step 3: Registration Form ─── -->
   <div id="stepForm" class="card" style="display:none;">
     <div class="card-header">
       <div class="icon">📋</div>
@@ -210,7 +199,6 @@
     </form>
   </div>
 
-  <!-- ─── Success Screen ─── -->
   <div id="stepSuccess" style="display:none;">
     <div class="success-wrap">
       <div class="success-icon">🎉</div>
@@ -222,18 +210,15 @@
     </div>
   </div>
 
-</div><!-- end page-container -->
+</div>
 
-<!-- ══════════════════ SCRIPTS ══════════════════ -->
 <script type="module">
-  // ── Firebase Imports ──
   import { initializeApp }            from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import {
     getFirestore, collection, addDoc, getDocs,
     doc, updateDoc, increment, query, where, getDoc
   } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  // ── Init ──
   const firebaseConfig = {
     apiKey: "AIzaSyCCF5WQXu7c17SalqemvGGsywRpA6Cyog8",
     authDomain: "ecpc-967a8.firebaseapp.com",
@@ -245,12 +230,10 @@
   const app = initializeApp(firebaseConfig);
   const db  = getFirestore(app);
 
-  // ── State ──
   let hasTeam      = null;
-  let selectedTeam = null;  // { id, name, members_count }
+  let selectedTeam = null;  
   let allTeams     = [];
 
-  // ── Expose helpers to global scope ──
   window.selectHasTeam  = selectHasTeam;
   window.joinTeam       = joinTeam;
   window.createTeam     = createTeam;
@@ -260,9 +243,7 @@
   window.resetAll       = resetAll;
   window.selectTeamCard = selectTeamCard;
 
-  // ════════════════════════════════════════
-  //  STEP 1 — Has team?
-  // ════════════════════════════════════════
+
   function selectHasTeam(val) {
     hasTeam = val;
     setStep(val ? 'team' : 'form');
@@ -274,9 +255,7 @@
     if (val) loadTeams();
   }
 
-  // ════════════════════════════════════════
-  //  Load Teams from Firestore
-  // ════════════════════════════════════════
+ 
   async function loadTeams() {
     const loadingEl = document.getElementById('teamsLoading');
     const listEl    = document.getElementById('teamsList');
@@ -316,7 +295,6 @@
             ${full ? '🔒 الفريق ممتلئ' : `${3 - team.members_count} مقعد متاح`}
           </div>`;
         if (!full) {
-          // استخدام data attribute بدل closure عشان يشتغل صح مع module scope
           card.setAttribute('data-team-id', team.id);
           card.addEventListener('click', () => {
             const t = allTeams.find(x => x.id === team.id);
@@ -333,18 +311,13 @@
     }
   }
 
-  // ── Select a team card ──
   function selectTeamCard(team) {
     selectedTeam = team;
-    // إزالة التحديد من كل الكروت
     document.querySelectorAll('.team-card').forEach(c => c.classList.remove('selected'));
-    // تحديد الكارت المختار
     const card = document.getElementById(`teamCard_${team.id}`);
     if (card) card.classList.add('selected');
-    // إظهار قسم الانضمام
     document.getElementById('selectedTeamName').textContent = team.name;
     document.getElementById('joinTeamSection').style.display = 'block';
-    // scroll للباسورد
     setTimeout(() => {
       document.getElementById('joinPassword').focus();
       document.getElementById('joinTeamSection').scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -352,15 +325,11 @@
   }
   window.selectTeamCard = selectTeamCard;
 
-  // ════════════════════════════════════════
-  //  Join Existing Team
-  // ════════════════════════════════════════
   async function joinTeam() {
     if (!selectedTeam) { showToast('اختار فريق الأول', 'error'); return; }
     const pwd = document.getElementById('joinPassword').value.trim();
     if (!pwd) { showToast('أدخل كلمة سر الفريق', 'error'); return; }
 
-    // Re-fetch team to get latest data
     try {
       const teamSnap = await getDoc(doc(db, 'teams', selectedTeam.id));
       if (!teamSnap.exists()) { showToast('الفريق مش موجود!', 'error'); return; }
@@ -385,9 +354,6 @@
     }
   }
 
-  // ════════════════════════════════════════
-  //  Create New Team
-  // ════════════════════════════════════════
   async function createTeam() {
     const name = document.getElementById('newTeamName').value.trim();
     const pwd  = document.getElementById('newTeamPassword').value.trim();
@@ -396,7 +362,6 @@
     if (!pwd)  { showToast('اكتب كلمة سر للفريق', 'error'); return; }
     if (name.length < 3) { showToast('اسم الفريق على الأقل 3 حروف', 'error'); return; }
 
-    // Check duplicate name
     const q = query(collection(db, 'teams'), where('name', '==', name));
     const existing = await getDocs(q);
     if (!existing.empty) { showToast('اسم الفريق ده موجود بالفعل', 'error'); return; }
@@ -418,15 +383,12 @@
     }
   }
 
-  // ════════════════════════════════════════
-  //  Submit Registration Form
-  // ════════════════════════════════════════
+
   async function submitRegistration(e) {
     e.preventDefault();
     const alertsEl = document.getElementById('formAlerts');
     alertsEl.innerHTML = '';
 
-    // ── Gather values ──
     const fullName      = document.getElementById('fullName').value.trim();
     const dob           = document.getElementById('dob').value;
     const enrollDate    = document.getElementById('enrollmentDate').value;
@@ -435,10 +397,9 @@
     const icpcEmail     = document.getElementById('icpcEmail').value.trim().toLowerCase();
     const nationalId    = document.getElementById('nationalId').value.trim();
 
-    // ── Validation ──
     const errors = [];
-    if (!fullName || fullName.split(' ').length < 2)
-      errors.push('الاسم يجب أن يكون على الأقل اسمين');
+    if (!fullName || fullName.split(' ').length < 4)
+      errors.push('الاسم يجب أن يكون على الأقل اربع اسماء');
     if (!dob) errors.push('أدخل تاريخ الميلاد');
     if (!enrollDate) errors.push('أدخل تاريخ الالتحاق');
     if (!studentId) errors.push('أدخل رقم الكارنيه');
@@ -452,7 +413,6 @@
       return;
     }
 
-    // ── Check duplicate email / national ID ──
     const emailQ  = query(collection(db, 'users'), where('icpc_email', '==', icpcEmail));
     const emailSnap = await getDocs(emailQ);
     if (!emailSnap.empty) {
@@ -466,13 +426,11 @@
       return;
     }
 
-    // ── Disable button ──
     const btn = document.getElementById('submitBtn');
     btn.disabled = true;
     btn.innerHTML = '<div class="spinner"></div> جاري الإرسال...';
 
     try {
-      // Save user
       const userData = {
         full_name:       fullName,
         dob:             dob,
@@ -487,14 +445,12 @@
 
       await addDoc(collection(db, 'users'), userData);
 
-      // Increment team members_count if joined a team
       if (selectedTeam) {
         await updateDoc(doc(db, 'teams', selectedTeam.id), {
           members_count: increment(1)
         });
       }
 
-      // Show success
       setStep('success');
       document.getElementById('successMsg').textContent =
         selectedTeam
@@ -509,9 +465,7 @@
     }
   }
 
-  // ════════════════════════════════════════
-  //  Navigation helpers
-  // ════════════════════════════════════════
+
   function setStep(step) {
     document.getElementById('stepHasTeam').style.display = 'none';
     document.getElementById('stepTeam').style.display    = 'none';
@@ -559,16 +513,13 @@
     if (l2) l2.classList.toggle('done', active > 2);
   }
 
-  // ── Toggle password visibility ──
   window.togglePass = function(id, btn) {
     const inp = document.getElementById(id);
     if (inp.type === 'password') { inp.type = 'text'; btn.textContent = '🙈'; }
     else                         { inp.type = 'password'; btn.textContent = '👁'; }
   };
 
-  // ════════════════════════════════════════
-  //  Toast notifications
-  // ════════════════════════════════════════
+
   function showToast(msg, type = 'info') {
     const icons = { success: '✅', error: '❌', info: 'ℹ️' };
     const container = document.getElementById('toastContainer');
