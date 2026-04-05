@@ -48,7 +48,7 @@
   <div class="password-group">
     <input type="password" id="adminPassword" placeholder="أدخل كلمة السر"
            onkeydown="if(event.key==='Enter') adminLogin()" />
-    <button class="toggle-password" onclick="togglePass('adminPassword',this)" type="button">👁</button>
+    <button class="toggle-password" onclick="togglePass('adminPassword',this)" type="button">👀</button>
   </div>
 </div>
     <button class="btn btn-primary btn-full" onclick="adminLogin()">🔐 دخول</button>
@@ -70,6 +70,12 @@
         <div class="stat-label">إجمالي المتسابقين</div>
       </div>
     </div>
+   <div class="chart-card">
+  <h3 class="chart-title">📊 توزيع المتسابقين</h3>
+  <div class="chart-wrapper">
+    <canvas id="statsChart"></canvas>
+  </div>
+</div>
     <div class="stat-card">
       <div class="stat-icon yellow">🏅</div>
       <div class="stat-info">
@@ -149,6 +155,9 @@
                oninput="filterTeams()" />
       </div>
       <button class="btn btn-primary btn-sm" onclick="openCreateTeamModal()">➕ فريق جديد</button>
+    <button class="btn btn-success btn-sm" onclick="exportTeamsExcel()">
+  📊 تصدير الفرق
+</button>
     </div>
 
     <div class="table-wrapper">
@@ -273,6 +282,7 @@
   </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <!-- ══════════════════ SCRIPTS ══════════════════ -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -283,7 +293,6 @@
   } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getAuth, signInWithEmailAndPassword, signOut } 
 from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-  // ── Init Firebase ──
   const firebaseConfig = {
     apiKey: "AIzaSyCCF5WQXu7c17SalqemvGGsywRpA6Cyog8",
     authDomain: "ecpc-967a8.firebaseapp.com",
@@ -295,18 +304,13 @@ from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
   const app = initializeApp(firebaseConfig);
   const db  = getFirestore(app);
 const auth = getAuth(app);
-  // ── Admin password ──
 
-  // ── State ──
   let allUsers    = [];
   let allTeams    = [];
   let usersUnsub  = null;
   let teamsUnsub  = null;
+  let statsChartInstance = null;
 
-  // ════════════════════════════════════════
-  //  AUTH
-  // ════════════════════════════════════════
-  
 
   window.logout = async function() {
   sessionStorage.removeItem('admin_auth');
@@ -317,7 +321,7 @@ const auth = getAuth(app);
   window.togglePass = function(id, btn) {
     const inp = document.getElementById(id);
     if (inp.type === 'password') { inp.type = 'text'; btn.textContent = '🙈'; }
-    else                         { inp.type = 'password'; btn.textContent = '👁'; }
+    else                         { inp.type = 'password'; btn.textContent = '👀'; }
   };
 
   // Auto-login if session exists
@@ -345,7 +349,7 @@ const auth = getAuth(app);
     }
 
   } catch (err) {
-    alertEl.innerHTML = `<div class="alert alert-error">❌ ${err.message}</div>`;
+    alertEl.innerHTML = `<div class="alert alert-error">❌ pass is wrong</div>`;
   }
 };
   // ════════════════════════════════════════
@@ -353,19 +357,42 @@ const auth = getAuth(app);
   // ════════════════════════════════════════
   function initDashboard() {
     // Teams listener
-    teamsUnsub = onSnapshot(collection(db, 'teams'), snap => {
-      allTeams = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      renderTeams();
-      updateStats();
-      populateTeamFilter();
-      populateEditTeamSelect();
-    });
+    let usersLoaded = false;
+let teamsLoaded = false;
+
+teamsUnsub = onSnapshot(collection(db, 'teams'), snap => {
+  allTeams = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  teamsLoaded = true;
+
+  if (usersLoaded) {
+    renderTeams();
+    renderUsers();
+    updateStats();
+    renderChart();
+    populateTeamFilter();
+    populateEditTeamSelect();
+  }
+});
+
+usersUnsub = onSnapshot(collection(db, 'users'), snap => {
+  allUsers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  usersLoaded = true;
+
+  if (teamsLoaded) {
+    renderTeams();
+    renderUsers();
+    updateStats();
+    populateTeamFilter();
+    populateEditTeamSelect();
+  }
+});
 
     // Users listener
     usersUnsub = onSnapshot(collection(db, 'users'), snap => {
       allUsers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       renderUsers();
       updateStats();
+      renderChart();
     });
   }
 
@@ -378,7 +405,33 @@ const auth = getAuth(app);
     document.getElementById('statWithTeam').textContent = allUsers.filter(u => u.team_id).length;
     document.getElementById('statNoTeam').textContent   = allUsers.filter(u => !u.team_id).length;
   }
+function renderChart() {
+  const ctx = document.getElementById('statsChart');
 
+  const withTeam = allUsers.filter(u => u.team_id).length;
+  const noTeam   = allUsers.filter(u => !u.team_id).length;
+
+  if (statsChartInstance) {
+    statsChartInstance.destroy();
+  }
+
+  statsChartInstance = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['With Team', 'No Team'],
+      datasets: [{
+        data: [withTeam, noTeam]
+      }]
+    },
+    options: {
+      plugins: {
+        legend: {
+          labels: { color: '#fff' }
+        }
+      }
+    }
+  });
+}
   // ════════════════════════════════════════
   //  TABS
   // ════════════════════════════════════════
@@ -441,7 +494,13 @@ const auth = getAuth(app);
         </div></td></tr>`;
       return;
     }
-    tbody.innerHTML = data.map((t, i) => {
+    data.sort((a,b)=>{
+  const ca = allUsers.filter(u=>u.team_id===a.id).length;
+  const cb = allUsers.filter(u=>u.team_id===b.id).length;
+  return cb - ca;
+});
+
+tbody.innerHTML = data.map((t, i) => {
       const count = allUsers.filter(u => u.team_id === t.id).length;
       const full  = count >= 3;
       return `<tr>
@@ -449,14 +508,16 @@ const auth = getAuth(app);
         <td><strong>🏅 ${escHtml(t.name)}</strong></td>
         <td>
           <div style="display:flex;gap:6px;align-items:center;">
-            ${[0,1,2].map(n=>`<div class="member-dot${n<count?' filled':''}"></div>`).join('')}
+            ${[0,1,2].map(n=>`<div class="member-dot ${n<count?'filled':''} ${full?'full':''}"></div>`).join('')}
             <span style="font-size:0.82rem;color:var(--text-muted);margin-right:4px;">${count}/3</span>
           </div>
         </td>
         <td>
           ${full
-            ? `<span class="badge badge-red">🔒 ممتلئ</span>`
-            : `<span class="badge badge-green">✅ متاح (${3-count} مقعد)</span>`}
+  ? `<span class="badge badge-red">🔒 Full</span>`
+  : count === 2
+    ? `<span class="badge badge-yellow">⚠ Almost Full (1 left)</span>`
+    : `<span class="badge badge-green">✅ Available (${3-count} spots)</span>`}
         </td>
         <td>
           <div class="td-actions">
@@ -508,7 +569,8 @@ const auth = getAuth(app);
     sel.innerHTML = '<option value="">بدون فريق</option>';
     allTeams.forEach(t => {
       const opt = document.createElement('option');
-      opt.value = t.id; opt.textContent = `${t.name} (${t.members_count}/3)`;
+      const count = allUsers.filter(u => u.team_id === t.id).length;
+      opt.textContent = `${t.name} (${count}/3)`;
       if (t.id === cur) opt.selected = true;
       sel.appendChild(opt);
     });
@@ -562,7 +624,8 @@ const auth = getAuth(app);
         if (newTeamId) {
           // Check capacity
           const newTeam = allTeams.find(t => t.id === newTeamId);
-          if (newTeam && newTeam.members_count >= 3) {
+          const count = allUsers.filter(u => u.team_id === newTeamId).length;
+        if (count >= 3) {
             showToast('الفريق ممتلئ! لا يمكن إضافة عضو جديد', 'error');
             return;
           }
@@ -673,7 +736,8 @@ const auth = getAuth(app);
     const userId = document.getElementById('addMemberSelect').value;
     if (!userId) { showToast('اختار متسابق الأول', 'error'); return; }
     const team = allTeams.find(t => t.id === teamId);
-    if (team && team.members_count >= 3) { showToast('الفريق ممتلئ!', 'error'); return; }
+   const count = allUsers.filter(u => u.team_id === teamId).length;
+if (count >= 3) { showToast('الفريق ممتلئ!', 'error'); return; }
     try {
       const batch = writeBatch(db);
       batch.update(doc(db,'users',userId), { team_id: teamId });
@@ -747,35 +811,159 @@ const auth = getAuth(app);
   // ════════════════════════════════════════
   //  EXPORT XML
   // ════════════════════════════════════════
-  window.exportExcel = function() {
+window.exportExcel = function() {
   const data = [];
 
   allUsers.forEach(u => {
     const team = allTeams.find(t => t.id === u.team_id);
 
     data.push({
-      "الاسم": u.full_name || '',
-      "الإيميل": u.icpc_email || '',
-      "رقم الكارنيه": u.student_id || '',
-      "الهاتف": u.phone || '',
-      "الرقم القومي": u.national_id || '',
-      "تاريخ الميلاد": u.dob || '',
-      "تاريخ الالتحاق": u.enrollment_date || '',
-      "الفريق": team ? team.name : 'بدون فريق'
+      "Full Name": u.full_name || '',
+      "ICPC Email": u.icpc_email || '',
+      "Student ID": u.student_id || '',
+      "Phone": u.phone || '',
+      "National ID": u.national_id || '',
+      "Date of Birth": u.dob || '',
+      "Enrollment Date": u.enrollment_date || '',
+      "Team": team ? team.name : 'No Team'
     });
   });
 
-  const worksheet = XLSX.utils.json_to_sheet(data);
-  const workbook  = XLSX.utils.book_new();
+  const ws = XLSX.utils.json_to_sheet(data);
 
-  XLSX.utils.book_append_sheet(workbook, worksheet, "المتسابقين");
+  // 📏 عرض الأعمدة
+  ws['!cols'] = [
+    { wch: 25 },
+    { wch: 30 },
+    { wch: 15 },
+    { wch: 18 },
+    { wch: 20 },
+    { wch: 15 },
+    { wch: 18 },
+    { wch: 20 }
+  ];
+
+  // 🎨 تنسيق الهيدر
+  const range = XLSX.utils.decode_range(ws['!ref']);
+  for (let C = range.s.c; C <= range.e.c; ++C) {
+    const cell = ws[XLSX.utils.encode_cell({ r: 0, c: C })];
+    if (cell) {
+      cell.s = {
+        font: { bold: true, color: { rgb: "FFFFFF" } },
+        fill: { fgColor: { rgb: "4F81BD" } }, // أزرق
+        alignment: { horizontal: "center", vertical: "center" }
+      };
+    }
+  }
+
+  // 🎨 تنسيق الصفوف (zebra)
+  for (let R = 1; R <= range.e.r; ++R) {
+    for (let C = range.s.c; C <= range.e.c; ++C) {
+      const cell = ws[XLSX.utils.encode_cell({ r: R, c: C })];
+      if (cell) {
+        cell.s = {
+          alignment: { horizontal: "center" },
+          fill: {
+            fgColor: { rgb: R % 2 === 0 ? "DCE6F1" : "FFFFFF" }
+          }
+        };
+      }
+    }
+  }
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Users");
 
   const date = new Date().toISOString().split('T')[0];
-  XLSX.writeFile(workbook, `ecpc_users_${date}.xlsx`);
+  XLSX.writeFile(wb, `ECPC_Users_${date}.xlsx`);
 
-  showToast('تم تصدير Excel بنجاح 📊', 'success');
+  showToast('Excel exported successfully 📊', 'success');
 };
+window.exportTeamsExcel = function() {
+  const data = [];
 
+  // نحدد أقصى عدد أعضاء في فريق واحد عشان نبني الأعمدة
+  let maxMembers = 0;
+
+  const teamsMembersMap = allTeams.map(t => {
+    const members = allUsers
+      .filter(u => u.team_id === t.id)
+      .map(u => u.full_name);
+
+    if (members.length > maxMembers) {
+      maxMembers = members.length;
+    }
+
+    return {
+      team: t,
+      members
+    };
+  });
+
+  // بناء الأعمدة الديناميكية
+  teamsMembersMap.forEach(item => {
+    const row = {
+      "Team Name": item.team.name || '',
+      "Members Count": item.members.length
+    };
+
+    item.members.forEach((m, index) => {
+      row[`Member ${index + 1}`] = m;
+    });
+
+    data.push(row);
+  });
+
+  const ws = XLSX.utils.json_to_sheet(data);
+
+  // 📏 عرض الأعمدة
+  const cols = [
+    { wch: 25 }, // Team Name
+    { wch: 15 }  // Members Count
+  ];
+
+  for (let i = 0; i < maxMembers; i++) {
+    cols.push({ wch: 25 });
+  }
+
+  ws['!cols'] = cols;
+
+  // 🎨 تنسيق الهيدر
+  const range = XLSX.utils.decode_range(ws['!ref']);
+  for (let C = range.s.c; C <= range.e.c; ++C) {
+    const cell = ws[XLSX.utils.encode_cell({ r: 0, c: C })];
+    if (cell) {
+      cell.s = {
+        font: { bold: true, color: { rgb: "FFFFFF" } },
+        fill: { fgColor: { rgb: "4F81BD" } },
+        alignment: { horizontal: "center", vertical: "center" }
+      };
+    }
+  }
+
+  // 🎨 zebra rows
+  for (let R = 1; R <= range.e.r; ++R) {
+    for (let C = range.s.c; C <= range.e.c; ++C) {
+      const cell = ws[XLSX.utils.encode_cell({ r: R, c: C })];
+      if (cell) {
+        cell.s = {
+          alignment: { horizontal: "center" },
+          fill: {
+            fgColor: { rgb: R % 2 === 0 ? "DCE6F1" : "FFFFFF" }
+          }
+        };
+      }
+    }
+  }
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Teams");
+
+  const date = new Date().toISOString().split('T')[0];
+  XLSX.writeFile(wb, `ECPC_Teams_${date}.xlsx`);
+
+  showToast('Teams Excel exported 📊', 'success');
+};
   // ════════════════════════════════════════
   //  MODAL HELPERS
   // ════════════════════════════════════════
